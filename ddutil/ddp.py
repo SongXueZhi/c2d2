@@ -27,7 +27,7 @@ import logging
 
 from conf import CCA_SCRIPTS_DIR, DD_DIR, LOG_DIR, VAR_DIR, DEPENDENCIES_INSTALLER
 from misc import ensure_dir
-from ddplain import A_DD, A_DDMIN
+from ddplain import A_DD, A_DDMIN, A_PRODD
 
 import misc
 import ddplain
@@ -89,7 +89,7 @@ def main():
     parser.add_argument('-v', '--verbose', dest='verbose', action='store_true',
                         help='enable verbose printing')
 
-    parser.add_argument('-a', '--algo', dest='algo', choices=[A_DDMIN, A_DD],
+    parser.add_argument('-a', '--algo', dest='algo', choices=[A_DDMIN, A_DD, A_PRODD],
                         help='specify DD algorithm', default=A_DDMIN)
 
     # parser.add_argument('-k', '--keep-going', dest='keep_going', action='store_true',

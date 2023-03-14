@@ -57,8 +57,7 @@ TEST_SCRIPT  = 'test'
 
 A_DD    = 'dd'
 A_DDMIN = 'ddmin'
-
-
+A_PRODD = "prodd"
 
 class DDResult(object):
     def __init__(self, *args, **kwargs):
@@ -160,6 +159,7 @@ class JavaDD(DD, object):
 
     def show_status(self, run, cs, n):
         mes = 'dd (run #{}): trying {}'.format(run, '+'.join([str(len(cs[i])) for i in range(n)]))
+        print(mes)
         self.set_status(mes)
 
     def get_max_stmt_level(self):
@@ -583,6 +583,32 @@ class JavaDD(DD, object):
 
         return r
 
+    def do_prodd(self, c, stage=1, prefix=''):
+        c_min = c
+        if len(c) > 1:
+            c_min = self.prodd(c)
+            c_min.sort(key=getnum)
+
+        c_min_len_ = len(self.ungroup(c_min))
+        self.set_status('STAGE{}: The 1-minimal failure-inducing changes ({}({}) components)'.format(stage,
+                                                                                                     len(c_min),
+                                                                                                     c_min_len_))
+        print(c_min)
+        self.show_hunks(c_min)
+
+        suffix = str(stage)
+
+        min_res = self._test(c_min,
+                             uid=add_vp_suffix(prefix+'minimal'+suffix, self._vp),
+                             keep_variant=True)
+
+        r = DDResult(algo=A_PRODD)
+        r.inp = c
+        r.minimal_result = min_res
+        r.cids_minimal = c_min
+
+        return r
+
     def do_dd(self, c, stage=1, prefix=''):
         (c_min, c_pass, c_fail) = self.dd(c)
 
@@ -673,6 +699,9 @@ class JavaDD(DD, object):
 
                 elif algo == A_DD:
                     r = self.do_dd(cids, stage=self._stage, prefix=prefix)
+
+                elif algo == A_PRODD:
+                    r = self.do_prodd(cids, stage=self._stage, prefix=prefix)
 
                 if self._patch_count > 0:
                     sc = self._patch_count - self._patch_failure_count

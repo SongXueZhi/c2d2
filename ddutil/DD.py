@@ -224,8 +224,8 @@ class DD:
 
 
     # Test outcomes.
-    PASS       = "FAIL"
-    FAIL       = "PASS"
+    PASS       = "PASS"
+    FAIL       = "FAIL"
     UNRESOLVED = "UNRESOLVED"
 
 
@@ -715,7 +715,7 @@ class DD:
             logger.debug("dd({}, {})...".format(self.pretty(c), repr(n)))
 
 
-        outcome = self._prodd(c)
+        outcome = self._dd(c, n)
 
 
         if self.debug_dd:
@@ -783,28 +783,27 @@ class DD:
 
     def _prodd(self,c):
         print("Use ProbDD")
-        assert self.test([]) == self.PASS #check wether F meet T
-        retseq = c
-        retIdx = range(0,len(c))
+        assert self.test([]) == self.PASS #check whether F meet T
         p = []
         for idx in range(0,len(c)): # initialize the probability for each element in the input sequence
             p.append(0.1)
         while not self.testDone(p):
+
             delIdx = self.sample(p)
             if len(delIdx) == 0:
                 break
-            idx2test = self.getIdx2test(retIdx,delIdx) 
+            idx2test = self.getIdx2test(c,delIdx) 
             if self.test(idx2test) == self.FAIL: # set probabilities of the deleted elements to 0
                 for set0 in range(0,len(p)):
                     if set0 not in idx2test:
                         p[set0] = 0
-                retIdx = idx2test
+                c = idx2test
             else: #test(seq2test, *test_args) == PASS:
                 for setd in range(0,len(p)):
                     if setd in delIdx and p[setd] != 0 and p[setd] != 1:
                         delta = (self.computRatio(delIdx,p) - 1) * p[setd]
                         p[setd] = p[setd] + delta
-        return retseq
+        return c
 
 
     def _dd(self, c, n):
@@ -936,6 +935,21 @@ class DD:
     def ddmix(self, c):
         return self.ddgen(c, 1, 1)
 
+    def prodd(self, c):
+        """Return a 1-minimal failing subset of C"""
+
+        n = 2
+        self.CC = c
+
+        if self.debug_dd:
+            logger.debug("dd({}, {})...".format(self.pretty(c), repr(n)))
+
+        outcome = self._prodd(c)
+
+        if self.debug_dd:
+            logger.debug("dd({}, {}) = {}".format(self.pretty(c), repr(n), repr(outcome)))
+
+        return outcome
 
 
     # General delta debugging (new TSE version)
@@ -1182,6 +1196,12 @@ if __name__ == '__main__':
     logger.info("Removing any element will make the failure go away.")
     logger.info('')
     
+    logger.info("Minimizing failure-inducing input...")
+    c = mydd.prodd([1, 2, 3, 4, 5, 6, 7, 8])  # Invoke DDMIN
+    logger.info("The 1-minimal failure-inducing input is {}".format(c))
+    logger.info("Removing any element will make the failure go away.")
+    logger.info('')
+
     logger.info("Computing the failure-inducing difference...")
     (c, c1, c2) = mydd.dd([1, 2, 3, 4, 5, 6, 7, 8]) # Invoke DD
     logger.info("The 1-minimal failure-inducing difference is {}".format(c))

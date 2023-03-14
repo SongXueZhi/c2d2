@@ -54,7 +54,7 @@ TEST_SCRIPT  = 'test'
 
 A_DD    = 'dd'
 A_DDMIN = 'ddmin'
-
+A_PRODD = 'prodd'
 
 
 def conv_LT(path, quiet=True):
@@ -143,6 +143,7 @@ class PlainDD(DD):
 
     def show_status(self, run, cs, n):
         mes = 'dd (run #{}): trying {}'.format(run, '+'.join([str(len(cs[i])) for i in range(n)]))
+        print(mes)
         self.set_status(mes)
 
     def set_stage(self, stg):
@@ -366,6 +367,19 @@ class PlainDD(DD):
         cx = []
         if algo == A_DDMIN:
             cx = self.ddmin(c)
+            cx.sort()
+
+            cx_len_ = self.count_hunks(cx)
+            self.set_status('STAGE{}: The 1-minimal failure-inducing changes ({}({}) components)'.format(stage,
+                                                                                                         len(cx),
+                                                                                                         cx_len_))
+            logger.info(cx)
+            self.show_hunks(cx)
+
+            self._test(cx, uid=add_vp_suffix(prefix+'minimal'+suffix, vp), keep_variant=True)
+
+        elif algo == A_PRODD:
+            cx = self.prodd(c)
             cx.sort()
 
             cx_len_ = self.count_hunks(cx)

@@ -29,7 +29,7 @@ from conf import CCA_SCRIPTS_DIR, VAR_DIR, FACT_DIR, DD_DIR, LOG_DIR, FB_DIR
 from conf import VIRTUOSO_PW, VIRTUOSO_PORT, DEPENDENCIES_INSTALLER
 from misc import ensure_dir
 from setup_factbase import FB
-from ddjava import A_DD, A_DDMIN
+from ddjava import A_DD, A_DDMIN, A_PRODD
 from decompose_delta import MAX_STMT_LEVEL, MODIFIED_STMT_RATE_THRESH
 
 import misc
@@ -106,7 +106,7 @@ def main():
     parser.add_argument('-v', '--verbose', dest='verbose', action='store_true',
                         help='enable verbose printing')
 
-    parser.add_argument('-a', '--algo', dest='algo', choices=[A_DDMIN, A_DD],
+    parser.add_argument('-a', '--algo', dest='algo', choices=[A_DDMIN, A_DD, A_PRODD],
                         help='specify DD algorithm', default=A_DDMIN)
 
     parser.add_argument('--staged', dest='staged', action='store_true',

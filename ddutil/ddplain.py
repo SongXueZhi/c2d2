@@ -40,7 +40,6 @@ from common import setup_logger, DEFAULT_LOGGING_LEVEL
 
 logger = logging.getLogger()
 
-
 # WORK_DIR/build: DIR -> unit
 # WORK_DIR/test: DIR -> result
 
@@ -50,9 +49,9 @@ TEST_RESULT_DIR_NAME = 'test_result'
 PROGRESS_FILE_NAME = 'progress'
 
 BUILD_SCRIPT = 'build'
-TEST_SCRIPT  = 'test'
+TEST_SCRIPT = 'test'
 
-A_DD    = 'dd'
+A_DD = 'dd'
 A_DDMIN = 'ddmin'
 A_PRODD = 'prodd'
 
@@ -63,7 +62,10 @@ def conv_LT(path, quiet=True):
     rc = proc.system(cmd, quiet=quiet)
     return rc
 
+
 HUNK_HEAD_PAT = re.compile(b'^--- (.+\.java)\s+(.+)')
+
+
 def get_modified_path_list(patch_path):
     path_list = []
     try:
@@ -79,6 +81,7 @@ def get_modified_path_list(patch_path):
 
     return path_list
 
+
 def patch(path, patch_path, quiet=True):
     # for rp in get_modified_path_list(patch_path):
     #     conv_LT(os.path.join(path, rp))
@@ -87,6 +90,7 @@ def patch(path, patch_path, quiet=True):
     logger.info('cmd="%s"' % cmd)
     rc = proc.system(cmd, quiet=quiet)
     return rc
+
 
 class PlainDD(DD):
     def __init__(self, working_dir, proj_id, src_dir, vers=None,
@@ -137,7 +141,7 @@ class PlainDD(DD):
         self._patch_count = 0
         self._patch_failure_count = 0
 
-        self._prev_progress = {DD.FAIL:(0, 0, 1),DD.PASS:(0, 0, 1)}
+        self._prev_progress = {DD.FAIL: (0, 0, 1), DD.PASS: (0, 0, 1)}
 
         self._stage = 1
 
@@ -207,7 +211,7 @@ class PlainDD(DD):
     def do_build(self, path):
         if self._build_script == None:
             if os.path.exists(os.path.join(path, self._build_script_name)):
-                return proc.system('./'+self._build_script_name, cwd=path)
+                return proc.system('./' + self._build_script_name, cwd=path)
             else:
                 return 0
         else:
@@ -216,7 +220,7 @@ class PlainDD(DD):
 
     def do_test(self, path):
         if self._test_script == None:
-            return proc.check_output('./'+self._test_script_name, cwd=path)
+            return proc.check_output('./' + self._test_script_name, cwd=path)
         else:
             result = DD.UNRESOLVED
             cmd = '%s %s' % (self._test_script, path)
@@ -257,8 +261,8 @@ class PlainDD(DD):
 
         logger.debug('copying: "%s" -> "%s"' % (self._original_dir, dest_dir))
 
-        #shutil.copytree(self._original_dir, dest_dir, symlinks=True)
-        #shutil.copytree(self._original_dir, dest_dir, copy_function=shutil.copy)
+        # shutil.copytree(self._original_dir, dest_dir, symlinks=True)
+        # shutil.copytree(self._original_dir, dest_dir, copy_function=shutil.copy)
         if proc.system('cp -RL {} {}'.format(self._original_dir, dest_dir)) != 0:
             logger.warning('failed to copy {} to {}'.format(self._original_dir, dest_dir))
 
@@ -312,7 +316,7 @@ class PlainDD(DD):
 
         result = self.do_test(dest_dir)
 
-        #nc = len(c)
+        # nc = len(c)
         nc = self.count_hunks(c)
 
         logger.info('%s (size=%d) -> %s' % (uid, nc, result))
@@ -323,7 +327,6 @@ class PlainDD(DD):
         elif result == DD.PASS:
             self.update_progress(result, (self._patch_count, nc))
 
-
         test_result_dir = self.get_test_result_dir()
         if not os.path.exists(test_result_dir):
             os.makedirs(test_result_dir)
@@ -331,13 +334,13 @@ class PlainDD(DD):
         test_result_path = os.path.join(test_result_dir, '%s.json' % uid)
         try:
             with open(test_result_path, 'w') as f:
-                d = {'config':c,'result':result}
+                d = {'config': c, 'result': result}
                 json.dump(d, f)
 
                 ft_path = os.path.join(dest_dir, 'failing_tests')
                 if os.path.exists(ft_path):
                     shutil.copyfile(ft_path,
-                                    os.path.join(test_result_dir, uid+'.failing_tests'))
+                                    os.path.join(test_result_dir, uid + '.failing_tests'))
 
                 if not keep_variant:
                     logger.info('removing %s...' % dest_dir)
@@ -346,7 +349,6 @@ class PlainDD(DD):
             logger.warning('%s' % e)
 
         return result
-
 
     def show_stat(self):
         if self._patch_count > 0:
@@ -376,7 +378,7 @@ class PlainDD(DD):
             logger.info(cx)
             self.show_hunks(cx)
 
-            self._test(cx, uid=add_vp_suffix(prefix+'minimal'+suffix, vp), keep_variant=True)
+            self._test(cx, uid=add_vp_suffix(prefix + 'minimal' + suffix, vp), keep_variant=True)
 
         elif algo == A_PRODD:
             cx = self.prodd(c)
@@ -389,7 +391,7 @@ class PlainDD(DD):
             logger.info(cx)
             self.show_hunks(cx)
 
-            self._test(cx, uid=add_vp_suffix(prefix+'minimal'+suffix, vp), keep_variant=True)
+            self._test(cx, uid=add_vp_suffix(prefix + 'minimal' + suffix, vp), keep_variant=True)
 
         elif algo == A_DD:
             (cx, c1, c2) = self.dd(c)
@@ -412,29 +414,28 @@ class PlainDD(DD):
             logger.info(c2)
 
             if cx:
-                self._test(cx, uid=add_vp_suffix(prefix+'minimal'+suffix, vp), keep_variant=True)
+                self._test(cx, uid=add_vp_suffix(prefix + 'minimal' + suffix, vp), keep_variant=True)
 
             if c1:
-                self._test(c1, uid=add_vp_suffix(prefix+'pass'+suffix, vp), keep_variant=True)
+                self._test(c1, uid=add_vp_suffix(prefix + 'pass' + suffix, vp), keep_variant=True)
 
             if c2:
-                self._test(c2, uid=add_vp_suffix(prefix+'fail'+suffix, vp), keep_variant=True)
+                self._test(c2, uid=add_vp_suffix(prefix + 'fail' + suffix, vp), keep_variant=True)
 
         self.show_stat()
 
         return cx
 
+
 def run(algo, proj_id, working_dir, src_dir, vers=None, conf=None,
         script_dir=None, build_script=None, test_script=None,
         keep_going=False, shuffle=False, greedy=False, staged=False, set_status=None):
-
     if set_status == None:
         set_status = lambda mes: logger.log(DEFAULT_LOGGING_LEVEL, mes)
 
     pdd = PlainDD(working_dir, proj_id, src_dir, vers=vers, conf=conf,
                   script_dir=script_dir, build_script=build_script, test_script=test_script,
                   keep_going=keep_going, shuffle=shuffle, staged=staged, set_status=set_status)
-
 
     ptbl = pdd.get_patch_tbl()
 
@@ -550,11 +551,10 @@ def main():
                         help='continue after failure')
 
     parser.add_argument('-a', '--algo', dest='algo', metavar='ALGO', choices=[A_DDMIN, A_DD],
-                        help='specify DD algorithm (%s|%s)' % (A_DDMIN,A_DD), default=A_DD)
+                        help='specify DD algorithm (%s|%s)' % (A_DDMIN, A_DD), default=A_DD)
 
     parser.add_argument('--ver', dest='vers', action='append', default=None,
                         metavar='VER', type=str, help='specify versions')
-
 
     args = parser.parse_args()
 
@@ -564,7 +564,6 @@ def main():
     if args.debug:
         log_level = logging.DEBUG
     setup_logger(logger, log_level)
-    
 
     if args.src_dir:
         src_dir = args.src_dir
@@ -574,6 +573,7 @@ def main():
     run(args.algo, args.proj_id, args.working_dir, src_dir,
         script_dir=args.script_dir, vers=args.vers,
         keep_going=args.keep_going, shuffle=args.shuffle, greedy=args.greedy, staged=args.staged)
+
 
 if __name__ == '__main__':
     main()

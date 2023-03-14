@@ -32,7 +32,7 @@ from conf import CCA_SCRIPTS_DIR, VIRTUOSO_PW, VIRTUOSO_PORT
 from decompose_delta import Decomposer, add_vp_suffix, vp_to_str, set_tbl_add, getnum, isgid
 from decompose_delta import DependencyCheckFailedException
 from decompose_delta import MAX_STMT_LEVEL, MODIFIED_STMT_RATE_THRESH
-from DD import DD
+from DD import DD, write_data
 
 sys.path.append(CCA_SCRIPTS_DIR)
 
@@ -53,11 +53,12 @@ TEST_RESULT_DIR_NAME = 'test_result'
 PROGRESS_FILE_NAME = 'progress'
 
 BUILD_SCRIPT = 'build'
-TEST_SCRIPT  = 'test'
+TEST_SCRIPT = 'test'
 
-A_DD    = 'dd'
+A_DD = 'dd'
 A_DDMIN = 'ddmin'
 A_PRODD = "prodd"
+
 
 class DDResult(object):
     def __init__(self, *args, **kwargs):
@@ -79,7 +80,6 @@ class DDResult(object):
             logger.warning('invalid fail_result: %s' % self.fail_result)
             self.fail_result = DD.FAIL
             self.cids_fail = self.inp
-
 
 
 class JavaDD(DD, object):
@@ -153,7 +153,7 @@ class JavaDD(DD, object):
 
         self._stage = 0
 
-        self._prev_progress = {DD.FAIL:(0, 0, 0),DD.PASS:(0, 0, 0)}
+        self._prev_progress = {DD.FAIL: (0, 0, 0), DD.PASS: (0, 0, 0)}
 
         self._custom_split = custom_split
 
@@ -161,6 +161,7 @@ class JavaDD(DD, object):
         mes = 'dd (run #{}): trying {}'.format(run, '+'.join([str(len(cs[i])) for i in range(n)]))
         print(mes)
         self.set_status(mes)
+        write_data(mes + "\n")
 
     def get_max_stmt_level(self):
         return self._decomp.get_max_stmt_level(*self._vp)
@@ -256,6 +257,8 @@ class JavaDD(DD, object):
     def show_hunks(self, xs):
         cids = self.ungroup(xs)
         logger.info('ungrouped components (%d): %s' % (len(cids), cids))
+        write_data('ungrouped components (%d): %s\n' % (len(cids), cids))
+
         tbl = {}
         ctbl = {}
 
@@ -280,6 +283,8 @@ class JavaDD(DD, object):
 
         for (loc, hs) in tbl.items():
             print('*** %s' % loc)
+            write_data('*** %s\n' % loc)
+
             l = list(hs)
             l.sort()
             for h in l:
@@ -288,6 +293,7 @@ class JavaDD(DD, object):
                 if cid not in deps:
                     mark = '*'
                 print('  [%s%s] %s' % (cid, mark, h))
+                write_data('  [%s%s] %s\n' % (cid, mark, h))
 
     def set_original_dir(self, ver):
         self._original_dir = os.path.join(self._src_dir, ver)
@@ -295,7 +301,7 @@ class JavaDD(DD, object):
     def get_delta_tbl(self, use_ref=True, use_other=True, shuffle=0, optout=False):
         self._decomp.decompose(use_ref=use_ref, use_other=use_other, staged=self._staged,
                                shuffle=shuffle, optout=optout)
-        self._decomp.show_compo_ids_tbl()#!!!
+        self._decomp.show_compo_ids_tbl()  # !!!
         return self._decomp.get_id_list_tbl()
 
     def get_optout_compo_ids(self, vp):
@@ -304,7 +310,7 @@ class JavaDD(DD, object):
     def do_build(self, path):
         if self._build_script == None:
             if os.path.exists(os.path.join(path, self._build_script_name)):
-                return proc.system('./'+self._build_script_name, cwd=path)
+                return proc.system('./' + self._build_script_name, cwd=path)
             else:
                 return 0
         else:
@@ -313,7 +319,7 @@ class JavaDD(DD, object):
 
     def do_test(self, path):
         if self._test_script == None:
-            return proc.check_output('./'+self._test_script_name, cwd=path)
+            return proc.check_output('./' + self._test_script_name, cwd=path)
         else:
             result = DD.UNRESOLVED
             cmd = '%s %s' % (self._test_script, path)
@@ -380,7 +386,7 @@ class JavaDD(DD, object):
 
         result = None
 
-        if True:#len(csub) > len(c) / 4:
+        if True:  # len(csub) > len(c) / 4:
             if direction == DD.ADD:
                 logger.info('dir=ADD')
                 result = self._decomp.add_dependency_g(self._vp, csub)
@@ -462,8 +468,8 @@ class JavaDD(DD, object):
 
         logger.info('copying: "%s" -> "%s"' % (self._original_dir, dest_dir))
 
-        #shutil.copytree(self._original_dir, dest_dir, symlinks=True)
-        #shutil.copytree(self._original_dir, dest_dir, copy_function=shutil.copy)
+        # shutil.copytree(self._original_dir, dest_dir, symlinks=True)
+        # shutil.copytree(self._original_dir, dest_dir, copy_function=shutil.copy)
         if proc.system('cp -RL {} {}'.format(self._original_dir, dest_dir)) != 0:
             logger.warning('failed to copy {} to {}'.format(self._original_dir, dest_dir))
 
@@ -520,7 +526,7 @@ class JavaDD(DD, object):
         logger.info('testing %s...' % uid)
 
         result = self.do_test(dest_dir)
-        
+
         logger.info('%s (size=%d) -> %s' % (uid, len(c), result))
 
         if result == DD.FAIL:
@@ -540,13 +546,13 @@ class JavaDD(DD, object):
         test_result_path = os.path.join(test_result_dir, '%s.json' % uid)
         try:
             with open(test_result_path, 'w') as f:
-                d = {'config':c,'result':result}
+                d = {'config': c, 'result': result}
                 json.dump(d, f)
 
                 ft_path = os.path.join(dest_dir, 'failing_tests')
                 if os.path.exists(ft_path):
                     shutil.copyfile(ft_path,
-                                    os.path.join(test_result_dir, uid+'.failing_tests'))
+                                    os.path.join(test_result_dir, uid + '.failing_tests'))
 
                 if not keep_variant:
                     logger.info('removing %s...' % dest_dir)
@@ -555,7 +561,6 @@ class JavaDD(DD, object):
             logger.warning('%s' % e)
 
         return result
-
 
     def do_ddmin(self, c, stage=1, prefix=''):
         c_min = c
@@ -573,7 +578,7 @@ class JavaDD(DD, object):
         suffix = str(stage)
 
         min_res = self._test(c_min,
-                             uid=add_vp_suffix(prefix+'minimal'+suffix, self._vp),
+                             uid=add_vp_suffix(prefix + 'minimal' + suffix, self._vp),
                              keep_variant=True)
 
         r = DDResult(algo=A_DDMIN)
@@ -599,7 +604,7 @@ class JavaDD(DD, object):
         suffix = str(stage)
 
         min_res = self._test(c_min,
-                             uid=add_vp_suffix(prefix+'minimal'+suffix, self._vp),
+                             uid=add_vp_suffix(prefix + 'minimal' + suffix, self._vp),
                              keep_variant=True)
 
         r = DDResult(algo=A_PRODD)
@@ -638,7 +643,7 @@ class JavaDD(DD, object):
         c_min_ = None
 
         if c_min:
-            min_uid = add_vp_suffix(prefix+'minimal'+suffix, self._vp)
+            min_uid = add_vp_suffix(prefix + 'minimal' + suffix, self._vp)
             c_min_ = self.add_dependency(self.ungroup(c_min))
             min_res = self._test(c_min_, uid=min_uid, keep_variant=True)
             if min_res != DD.FAIL:
@@ -648,11 +653,11 @@ class JavaDD(DD, object):
 
         if c_pass:
             pass_res = self._test(c_pass,
-                                  uid=add_vp_suffix(prefix+'pass'+suffix, self._vp),
+                                  uid=add_vp_suffix(prefix + 'pass' + suffix, self._vp),
                                   keep_variant=True)
         if c_fail:
             fail_res = self._test(c_fail,
-                                  uid=add_vp_suffix(prefix+'fail'+suffix, self._vp),
+                                  uid=add_vp_suffix(prefix + 'fail' + suffix, self._vp),
                                   keep_variant=True)
 
         r = DDResult(algo=A_DD)
@@ -665,7 +670,6 @@ class JavaDD(DD, object):
         r.cids_fail = c_fail
 
         return r
-
 
     def staged_dd(self, cids, staging, prefix=''):
 
@@ -687,9 +691,10 @@ class JavaDD(DD, object):
 
             self._stage += 1
             algo = staging.get_algo()
-
+            write_data('algo: {}\n'.format(algo))
             self.set_status('STAGE{}: {} in progress...'.format(self._stage, algo))
             print('cids=%s' % cids)
+            # write_data('cids=%s\n' % cids)
 
             self.reset_dd()
 
@@ -754,7 +759,7 @@ class Staging(object):
                 self._state = '0'
             return ddres.cids_ini
 
-        if self._state == 'Fd': # next: F or Md
+        if self._state == 'Fd':  # next: F or Md
             if ddres.algo == A_DDMIN:
                 self._state = 'F'
                 return self.mkcids_F(ddres)
@@ -768,12 +773,12 @@ class Staging(object):
                     self._state = 'Md'
                     return self.mkcids_Md(ddres)
 
-        elif self._state == 'F': # next: Md
+        elif self._state == 'F':  # next: Md
             ddres.check_fail()
             self._state = 'Md'
             return self.mkcids_Md(ddres)
-#
-        elif self._state == 'Md': # next: M or Sd
+        #
+        elif self._state == 'Md':  # next: M or Sd
             if ddres.algo == A_DDMIN:
                 self._state = 'M'
                 return self.mkcids_M(ddres)
@@ -787,12 +792,12 @@ class Staging(object):
                     self._state = 'Sd'
                     return self.mkcids_Sd(ddres)
 
-        elif self._state == 'M': # next: Sd
+        elif self._state == 'M':  # next: Sd
             ddres.check_fail()
             self._state = 'Sd'
             return self.mkcids_Sd(ddres)
-#
-        elif self._state == 'Sd': # next: S or Sd or 0
+        #
+        elif self._state == 'Sd':  # next: S or Sd or 0
             if ddres.algo == A_DDMIN:
                 self._state = 'S'
                 return self.mkcids_S(ddres)
@@ -803,7 +808,7 @@ class Staging(object):
                     return self.mkcids_S(ddres)
                 else:
                     ddres.check_fail()
-                    if self._stmt_level >= self._max_stmt_level or not jdd.has_stmt_group(self._stmt_level+1):
+                    if self._stmt_level >= self._max_stmt_level or not jdd.has_stmt_group(self._stmt_level + 1):
                         self._state = '0'
                         return self.mkcids_0(ddres)
                     else:
@@ -811,16 +816,16 @@ class Staging(object):
                         self._stmt_level += 1
                         return self.mkcids_Sd(ddres)
 
-        elif self._state == 'S': # next: Sd or 0
+        elif self._state == 'S':  # next: Sd or 0
             ddres.check_fail()
-            if self._stmt_level >= self._max_stmt_level or not jdd.has_stmt_group(self._stmt_level+1):
+            if self._stmt_level >= self._max_stmt_level or not jdd.has_stmt_group(self._stmt_level + 1):
                 self._state = '0'
                 return self.mkcids_0(ddres)
             else:
                 self._state = 'Sd'
                 self._stmt_level += 1
                 return self.mkcids_Sd(ddres)
-#
+        #
         elif self._state == '0' or self._state == '0m':
             if ddres.algo == A_DD:
                 pass_res = ddres.pass_result
@@ -828,7 +833,7 @@ class Staging(object):
                 min_res = ddres.minimal_result
                 if pass_res == DD.PASS and fail_res == DD.FAIL and min_res == DD.PASS:
                     self._state = '0m'
-                    #self._algo = A_DDMIN
+                    # self._algo = A_DDMIN
                     jdd.add_base_cids(ddres.cids_minimal)
                     cids = ddres.cids_pass
                     return cids
@@ -1037,7 +1042,6 @@ def run(algo, proj_id, working_dir, conf=None, src_dir=None, vers=None,
         modified_stmt_rate_thresh=MODIFIED_STMT_RATE_THRESH,
         custom_split=False,
         greedy=False, set_status=None):
-
     jdd = JavaDD(working_dir, proj_id, src_dir, vers=vers, conf=conf,
                  script_dir=script_dir, build_script=build_script, test_script=test_script,
                  keep_going=keep_going,
@@ -1061,7 +1065,7 @@ def run(algo, proj_id, working_dir, conf=None, src_dir=None, vers=None,
         else:
             ok = True
 
-        #c = ctbl.keys()
+        # c = ctbl.keys()
         c.sort(key=getnum)
 
         (v, v_) = vp
@@ -1079,6 +1083,7 @@ def run(algo, proj_id, working_dir, conf=None, src_dir=None, vers=None,
         c_ungrouped = jdd.ungroup(c)
         c_ungrouped.sort(key=getnum)
         print('ungrouped (%d): %s' % (len(c_ungrouped), c_ungrouped))
+        write_data('ungrouped (%d): %s\n' % (len(c_ungrouped), c_ungrouped))
 
         set_status('delta decomposed into {}({}) components'.format(len(c), len(c_ungrouped)))
 
@@ -1151,8 +1156,8 @@ def run(algo, proj_id, working_dir, conf=None, src_dir=None, vers=None,
                 break
     return ok
 
-def main():
 
+def main():
     from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
 
     parser = ArgumentParser(description='DD for Java program changes',
@@ -1216,7 +1221,6 @@ def main():
     parser.add_argument('--ver', dest='vers', action='append', default=None,
                         metavar='VER', type=str, help='specify versions')
 
-
     args = parser.parse_args()
 
     log_level = logging.WARNING
@@ -1235,6 +1239,7 @@ def main():
         staged=args.staged, keep_going=args.keep_going, noresolve=args.noresolve, noref=args.noref, nochg=args.nochg,
         shuffle=args.shuffle, optout=args.optout, max_stmt_level=args.max_stmt_level,
         modified_stmt_rate_thresh=args.modified_stmt_rate_thresh, custom_split=args.custom_split, greedy=args.greedy)
+
 
 if __name__ == '__main__':
     main()

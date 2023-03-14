@@ -30,6 +30,7 @@ import random
 import logging
 
 from conf import CCA_SCRIPTS_DIR, VIRTUOSO_PW, VIRTUOSO_PORT, FACTUTILS_DIR
+from DD import write_data
 
 sys.path.append(CCA_SCRIPTS_DIR)
 
@@ -795,7 +796,7 @@ GRAPH fb:%%(proj_id)s {
       ?cx_ src:parent+ ?x_ ;
            chg:insertedOrGrafted ?ctxc .
     }
-    
+
   })
 
   OPTIONAL {
@@ -2662,7 +2663,6 @@ GRAPH fb:%%(proj_id)s {
 }
 ''' % NS_TBL
 
-
 Q_MOV_MOVREL_JAVA = '''DEFINE input:inference "ont.cpi"
 PREFIX fb:  <%(fb_ns)s>
 PREFIX ver: <%(ver_ns)s>
@@ -3378,7 +3378,6 @@ GRAPH fb:%%(proj_id)s {
 }
 }
 ''' % NS_TBL
-
 
 Q_DEL_METH_LN_DEL_JAVA = '''DEFINE input:inference "ont.cpi"
 PREFIX fb:  <%(fb_ns)s>
@@ -5933,7 +5932,6 @@ GRAPH fb:%%(proj_id)s {
 }
 ''' % NS_TBL
 
-
 Q_ADD_TD_PUBLIC_INS_JAVA = '''DEFINE input:inference "ont.cpi"
 PREFIX fb:  <%(fb_ns)s>
 PREFIX ver: <%(ver_ns)s>
@@ -6726,7 +6724,7 @@ GRAPH fb:%%(proj_id)s {
   {
     SELECT DISTINCT ?ctx ?pub_ ?mname ?mname_ ?class ?class_ ?fqn_
     WHERE {
-  
+
       ?pub_ a java:Public ;
             java:inMethodOrConstructor ?meth_ ;
             chg:addition ?ctx .
@@ -7079,7 +7077,7 @@ GRAPH fb:%%(proj_id)s {
   {
     SELECT DISTINCT ?ctx ?pub_ ?mname ?mname_ ?class ?class_ ?fqn_
     WHERE {
-  
+
       ?pub_ a java:Public ;
             java:inMethodOrConstructor ?meth_ ;
             chg:addition ?ctx .
@@ -7171,7 +7169,7 @@ GRAPH fb:%%(proj_id)s {
   {
     SELECT DISTINCT ?ctx ?pub_ ?mname ?mname_ ?class ?class_ ?fqn_
     WHERE {
-  
+
       ?pub_ a java:Public ;
             java:inMethodOrConstructor ?meth_ ;
             chg:addition ?ctx .
@@ -7194,7 +7192,7 @@ GRAPH fb:%%(proj_id)s {
 
   ?a_ a java:Modifier ;
       java:inMethodOrConstructor ?meth0_ .
-  
+
   FILTER EXISTS {
     ?a_ a java:Public .
   }
@@ -10586,7 +10584,7 @@ GRAPH fb:%%(proj_id)s {
 
   ?tdecl0_ java:subClassOf+ ?tdecl_ ;
            java:fullyQualifiedName ?tyname_ .
-  
+
   ?facc_ a java:FieldAccess ;
          java:inTypeDeclaration ?tdecl0_ ;
          java:name ?fname_ ;
@@ -10647,7 +10645,7 @@ GRAPH fb:%%(proj_id)s {
   FILTER NOT EXISTS {
     ?tdecl0_ java:subClassOf+ ?tdecl_ ;
              java:fullyQualifiedName ?tyname_ .
-  
+
     ?x_ java:inTypeDeclaration ?tdecl0_ .
 
     ?fdecl_ java:inTypeDeclaration/ver:version ?ver_ .
@@ -11588,7 +11586,7 @@ GRAPH fb:%%(proj_id)s {
   ?ref a jref:AddParameter ;
        jref:addedParameter ?param_ ;
        jref:modifiedMethod ?meth0_ .
-  
+
   ?param_ chg:addition ?ctx0 .
 
 }
@@ -16035,7 +16033,6 @@ GRAPH fb:%%(proj_id)s {
 }
 ''' % NS_TBL
 
-
 Q_ADD_FIELD_REL_JAVA = '''DEFINE input:inference "ont.cpi"
 PREFIX fb:  <%(fb_ns)s>
 PREFIX ver: <%(ver_ns)s>
@@ -16995,7 +16992,6 @@ GRAPH fb:%%(proj_id)s {
 }
 }
 ''' % NS_TBL
-
 
 Q_ADD_VDTOR_INS_JAVA = '''DEFINE input:inference "ont.cpi"
 PREFIX fb:  <%(fb_ns)s>
@@ -24143,9 +24139,6 @@ GRAPH fb:%%(proj_id)s {
 }
 ''' % NS_TBL
 
-
-
-
 Q_D_INS_INS_JAVA = '''DEFINE input:inference "ont.cpi"
 PREFIX fb:  <%(fb_ns)s>
 PREFIX ver: <%(ver_ns)s>
@@ -29502,7 +29495,7 @@ GRAPH fb:%%(proj_id)s {
   {
     SELECT DISTINCT ?expr ?expr_ ?ety ?ety_
     WHERE {
-      
+
       ?expr chg:mappedTo ?expr_ .
 
       {
@@ -29813,7 +29806,6 @@ GRAPH fb:%%(proj_id)s {
 }
 }
 ''' % NS_TBL
-
 
 Q_CHG_FD_TY_INS_RHS_JAVA = '''DEFINE input:inference "ont.cpi"
 PREFIX fb:  <%(fb_ns)s>
@@ -35879,7 +35871,7 @@ GRAPH fb:%%(proj_id)s {
         [] rdf:first ?ret0t_ ;
            rdf:rest rdf:nil .
       }
-      
+
       FILTER EXISTS {
         [] rdf:first ?ret0e_ ;
            rdf:rest rdf:nil .
@@ -35891,7 +35883,7 @@ GRAPH fb:%%(proj_id)s {
   ?if0_ src:parent ?blk_ .
   ?blk_ a java:Block ;
         src:parent ?if_ .
-  
+
   ?if_ a java:IfStatement ;
        src:parent/src:parent ?meth_ ;
        chg:addition ?ctx .
@@ -36088,7 +36080,6 @@ GRAPH fb:%%(proj_id)s {
 }
 ''' % NS_TBL
 
-
 ###
 
 Q_AUXFILE_DEL_JAVA = '''DEFINE input:inference "ont.cpi"
@@ -36152,16 +36143,18 @@ K_MOV = 'MOV'
 
 KINDS = [K_INS, K_DEL, K_REL, K_MOV]
 
+
 def make_make_query_id(lang):
     f = lambda n: 'Q_%s_%s' % (n.upper(), lang.upper())
     return f
+
 
 def make_query_id(n):
     return 'Q_%s' % n.upper()
 
 
 QUERY_TBL = {
-    'java' : [
+    'java': [
         'ins',
         'ins_c',
         'del',
@@ -36194,8 +36187,8 @@ QUERY_LIST = [
     'chg_file',
 ]
 
-REF_QUERY_TBL = { # lang -> (query * tag) list
-    'java' : [
+REF_QUERY_TBL = {  # lang -> (query * tag) list
+    'java': [
         ('LV_RENAME', K_REL),
         ('LV_RENAME_R', K_REL),
 
@@ -36209,7 +36202,7 @@ REF_QUERY_TBL = { # lang -> (query * tag) list
         ('RENAME_METH', K_REL),
         ('RENAME_METH_EX', K_REL),
 
-        ('EXTRACT_METH', K_INS),#10
+        ('EXTRACT_METH', K_INS),  # 10
         ('EXTRACT_METH_I', K_INS),
         ## ('EXTRACT_METH_D', K_DEL),
         ('EXTRACT_METH_R', K_REL),
@@ -36223,7 +36216,7 @@ REF_QUERY_TBL = { # lang -> (query * tag) list
         ('INLINE_METH_M', K_MOV),
         ('INLINE_METH_EX', K_DEL),
 
-        ('PULL_UP_FIELD_I', K_INS),#20
+        ('PULL_UP_FIELD_I', K_INS),  # 20
         ('PULL_UP_FIELD_D', K_DEL),
 
         ('PUSH_DOWN_FIELD_I', K_INS),
@@ -36237,7 +36230,7 @@ REF_QUERY_TBL = { # lang -> (query * tag) list
         ('PULL_UP_METH_I', K_INS),
         ('PULL_UP_METH_D', K_DEL),
 
-        ('PUSH_DOWN_METH_I', K_INS),#30
+        ('PUSH_DOWN_METH_I', K_INS),  # 30
         ('PUSH_DOWN_METH_D', K_DEL),
 
         ('MOVE_METH_I', K_INS),
@@ -36249,7 +36242,7 @@ REF_QUERY_TBL = { # lang -> (query * tag) list
         ('IEV_I', K_INS),
         ('IEV_I2', K_INS),
         ('IEV_I3', K_INS),
-        ('IEV_M', K_MOV),#40
+        ('IEV_M', K_MOV),  # 40
 
         ('INLINE_TEMP_D', K_DEL),
         ('INLINE_TEMP_D2', K_DEL),
@@ -36260,7 +36253,7 @@ REF_QUERY_TBL = { # lang -> (query * tag) list
 }
 
 OTH_QUERY_TBL = {
-    'java' : [
+    'java': [
         ##(RULE_NAME, KEY, ENT)
 
         ##('INS_PARAM_INS', K_INS, K_INS),
@@ -36276,7 +36269,7 @@ OTH_QUERY_TBL = {
         ('INS_INS', K_INS, K_INS),
 
         ('ADD_RET_REL', K_INS, K_REL),
-        ('RM_RET_REL', K_DEL, K_REL),#10
+        ('RM_RET_REL', K_DEL, K_REL),  # 10
         ('CHG_RETVAL_REL', K_REL, K_REL),
         ('CHG_RETVAL_DEL_RETTY', K_REL, K_DEL),
         ('CHG_RETVAL_INS_RETTY', K_REL, K_INS),
@@ -36287,7 +36280,7 @@ OTH_QUERY_TBL = {
         ('CHG_RETTY_DEL', K_REL, K_DEL),
         ('CHG_RETTY_ADD', K_REL, K_INS),
 
-        ('CHG_EQ_OPERAND_REL', K_REL, K_REL),#20
+        ('CHG_EQ_OPERAND_REL', K_REL, K_REL),  # 20
         ('CHG_EQ_OPERAND_INS', K_REL, K_INS),
         ('CHG_LHS_REL', K_REL, K_REL),
         ('CHG_LHS_INS', K_REL, K_INS),
@@ -36298,7 +36291,7 @@ OTH_QUERY_TBL = {
         ('CHG_PARAM_INS_ARG', K_REL, K_INS),
         ('CHG_PARAM_CHG_ARG', K_REL, K_REL),
         ('DEL_PARAM_TY_CHG_ARG', K_DEL, K_REL),
-        ('INS_PARAM_TY_CHG_ARG', K_INS, K_REL),#30
+        ('INS_PARAM_TY_CHG_ARG', K_INS, K_REL),  # 30
         ('CHG_PARAM_TY_CHG_ARG_TY', K_REL, K_REL),
         ('CHG_PARAM_TY_RM_ARG_TY', K_REL, K_DEL),
         ('CHG_PARAM_TY_ADD_ARG_TY', K_REL, K_INS),
@@ -36308,7 +36301,7 @@ OTH_QUERY_TBL = {
         ('ADD_IM_PARAM_ADD_M_PARAM', K_INS, K_INS),
         ('RM_LVD_ADD_PARAM', K_DEL, K_INS),
         ('ADD_LVD_RM_PARAM', K_INS, K_DEL),
-        ('ADD_LVD_CHG_PARAM', K_INS, K_REL),#40
+        ('ADD_LVD_CHG_PARAM', K_INS, K_REL),  # 40
         ('ADD_PARAM_ADD_PARAM', K_INS, K_INS),
         ('RM_PARAM_RM_PARAM', K_DEL, K_DEL),
 
@@ -36535,7 +36528,7 @@ OTH_QUERY_TBL = {
 }
 
 OTH_DIR_QUERY_TBL = {
-    'java' : [
+    'java': [
         ##(RULE_NAME, DEP, ENT list) ENT list depends on DEP
 
         ('D_DEL_DEL', K_DEL, [K_DEL]),
@@ -36543,8 +36536,8 @@ OTH_DIR_QUERY_TBL = {
         ('MOV_DEL', K_DEL, [K_MOV]),
         ('MOV_INS', K_INS, [K_MOV]),
 
-        #('RM_DEF_RM_USE', K_DEL, [K_DEL]),
-        #('ADD_USE_ADD_DEF', K_INS, [K_INS]),
+        # ('RM_DEF_RM_USE', K_DEL, [K_DEL]),
+        # ('ADD_USE_ADD_DEF', K_INS, [K_INS]),
 
         ('RM_METH_RM_IVK', K_DEL, [K_DEL]),
         ('RM_METH_REL', K_REL, [K_DEL]),
@@ -36797,7 +36790,7 @@ OTH_DIR_QUERY_TBL = {
         ('RM_THROWS_CHG_IVK', K_DEL, [K_REL]),
         ('ADD_THROWS_CHG_IVK', K_REL, [K_INS]),
 
-        #('ADD_STMT_ADD_COND', K_INS, [K_INS]),
+        # ('ADD_STMT_ADD_COND', K_INS, [K_INS]),
 
         ('RM_STATIC_CHG_INIT', K_REL, [K_DEL]),
         ('ADD_STATIC_CHG_INIT', K_INS, [K_REL]),
@@ -36972,20 +36965,25 @@ OTH_DIR_QUERY_TBL = {
 
 et.register_namespace('xdd', XDD_NS)
 
+
 def cids_to_string(cids):
     return ','.join([str(x) for x in sorted(list(cids), key=getnum)])
+
 
 def mkgid(i):
     return 'G%d' % i
 
+
 def mktmpgid(i):
     return 'g%d' % i
+
 
 def isgid(x):
     b = False
     if isinstance(x, str):
         b = x.startswith('G')
     return b
+
 
 def getnum(x):
     n = None
@@ -37000,16 +36998,18 @@ def getnum(x):
         n = x
     return n
 
+
 def insert_attrs(xml, attrs):
     s = xml
     if attrs:
-        root = et.fromstring(DELTA_BUNDLE_HEAD+xml+DELTA_BUNDLE_TAIL)
+        root = et.fromstring(DELTA_BUNDLE_HEAD + xml + DELTA_BUNDLE_TAIL)
         e = root[0]
         for k, v in attrs:
             e.set(k, v)
         l = et.tostringlist(root[0], encoding='unicode')
         s = ''.join(filter(lambda x: not x.lstrip().startswith('xmlns'), l))
     return s
+
 
 def tbl_add(tbl, key, value):
     try:
@@ -37018,6 +37018,7 @@ def tbl_add(tbl, key, value):
             l.append(value)
     except KeyError:
         tbl[key] = [value]
+
 
 def set_tbl_add(tbl, key, value):
     try:
@@ -37032,14 +37033,17 @@ def set_tbl_add(tbl, key, value):
         else:
             tbl[key] = set([value])
 
+
 def add_suffix(path, suffix):
     (root, ext) = os.path.splitext(path)
-    r = root+suffix+ext
+    r = root + suffix + ext
     return r
+
 
 def vp_to_str(vp):
     (v, v_) = vp
     return '%s-%s' % (get_localname(v), get_localname(v_))
+
 
 def add_vp_suffix(path, vp):
     suffix = '_%s' % vp_to_str(vp)
@@ -37098,7 +37102,7 @@ class Edit(object):
 
         self.xkey = (kind, self.sl, self.sc, self.el, self.ec, loc,
                      self.sl_, self.sc_, self.el_, self.ec_, loc_)
-        
+
     def __hash__(self):
         return hash(self.key)
 
@@ -37142,11 +37146,10 @@ class Edit(object):
     def __str__(self):
         return self.to_string(short=False)
 
-
     def mkchginst(self):
-        uri = CHGINST_PREFIX+SEP.join([get_localname(self.ent),
-                                       get_localname(self.ent_),
-                                       self.kind])
+        uri = CHGINST_PREFIX + SEP.join([get_localname(self.ent),
+                                         get_localname(self.ent_),
+                                         self.kind])
         return uri
 
     @classmethod
@@ -37154,11 +37157,10 @@ class Edit(object):
         s = inst.replace(CHGINST_PREFIX, '')
         l = s.split(SEP)
         kind = l[6]
-        ent = ENT_PREFIX+SEP.join(l[0:3])
-        ent_ = ENT_PREFIX+SEP.join(l[3:6])
+        ent = ENT_PREFIX + SEP.join(l[0:3])
+        ent_ = ENT_PREFIX + SEP.join(l[3:6])
         edit = Edit(kind, ent, ent_, None, None, None)
         return edit
-
 
 
 class Hunk(object):
@@ -37245,6 +37247,7 @@ class Ref(object):
         s = 'REF %s %s' % (self.refname, self.sig)
         return s
 
+
 class Chg(object):
     def __init__(self, key, key_, kind, name):
         self.key = (key, key_, kind)
@@ -37265,6 +37268,7 @@ class Chg(object):
     def __str__(self):
         s = 'CHG %s' % self.name
         return s
+
 
 def get_paths(loc):
     return loc.split('|')
@@ -37308,8 +37312,10 @@ class Graph(object):
         self._graph.edge_properties['label'] = self._eprop
         self._graph.save(outfile)
 
+
 class DependencyCheckFailedException(Exception):
     pass
+
 
 class Decomposer(object):
     def __init__(self, proj_id, conf=None, lang=None, vers=None,
@@ -37326,15 +37332,15 @@ class Decomposer(object):
         if vers != None:
             self._selected_vers = set()
             for v in vers:
-                self._selected_vers.add(conf.versionNS+v)
+                self._selected_vers.add(conf.versionNS + v)
 
         if conf.vpairs:
-            self._vpairs = [(conf.versionNS+v, conf.versionNS+v_) for (v, v_) in conf.vpairs]
+            self._vpairs = [(conf.versionNS + v, conf.versionNS + v_) for (v, v_) in conf.vpairs]
 
         self._vp_optout_tbl = {}
         if conf.optout_tbl:
             for ((v, v_), l) in conf.optout_tbl.items():
-                k = (conf.versionNS+v, conf.versionNS+v_)
+                k = (conf.versionNS + v, conf.versionNS + v_)
                 self._vp_optout_tbl[k] = l
 
         self._vp_optout_compos_tbl = {}
@@ -37357,28 +37363,27 @@ class Decomposer(object):
 
     def init(self):
 
-        self._vp_vertex_tbl     = {} # ver * ver -> hunk -> vertex
-        self._vp_rev_vertex_tbl = {} # ver * ver -> vertex -> hunk
+        self._vp_vertex_tbl = {}  # ver * ver -> hunk -> vertex
+        self._vp_rev_vertex_tbl = {}  # ver * ver -> vertex -> hunk
 
-        self._graph_tbl = {} # ver * ver -> graph
+        self._graph_tbl = {}  # ver * ver -> graph
 
-        self._vp_compo_tbl = {} # ver * ver -> component_id -> hunk list
+        self._vp_compo_tbl = {}  # ver * ver -> component_id -> hunk list
 
-
-        self._hunk_tbl = { # kind -> (uri * uri) -> hunk
-            K_INS : {},
-            K_DEL : {},
-            K_REL : {},
-            K_MOV : {},
+        self._hunk_tbl = {  # kind -> (uri * uri) -> hunk
+            K_INS: {},
+            K_DEL: {},
+            K_REL: {},
+            K_MOV: {},
         }
 
-        self._move_tbl = {} # mov_hunk -> del_hunk * ins_hunk
-        self._del_tbl = {} # del_hunk -> mov_hunk
-        self._ins_tbl = {} # ins_hunk -> mov_hunk
+        self._move_tbl = {}  # mov_hunk -> del_hunk * ins_hunk
+        self._del_tbl = {}  # del_hunk -> mov_hunk
+        self._ins_tbl = {}  # ins_hunk -> mov_hunk
 
-        self._movrel_tbl = {} # mov_hunk -> rel_hunk set
-        
-        self._complete_moves = set() # inst set
+        self._movrel_tbl = {}  # mov_hunk -> rel_hunk set
+
+        self._complete_moves = set()  # inst set
 
         self._ref_hunks = set()
 
@@ -37391,24 +37396,24 @@ class Decomposer(object):
         self.__version_pairs_cache = {}
         self._version_pairs_cache = {}
 
-        self._vp_dep_tbl = {} # ver * ver -> vertex -> vertex set
-        self._vp_cid_dep_tbl = {} # ver * ver -> cid -> cid set
+        self._vp_dep_tbl = {}  # ver * ver -> vertex -> vertex set
+        self._vp_cid_dep_tbl = {}  # ver * ver -> cid -> cid set
 
         self._target_fid_tbl = {}
 
         self.setup_target_fid_tbl()
-#
+        #
         self._containing_stmt_tbl = {}
         self._mapped_stmt_tbl = {}
         self._removed_stmts = {}
         self._added_stmts = {}
 
-        for lv in range(self._max_stmt_level+1):
+        for lv in range(self._max_stmt_level + 1):
             self.setup_mapped_stmt_tbl(lv)
             self.setup_containing_stmt_tbl(lv)
             self.setup_removed_stmts(lv)
             self.setup_added_stmts(lv)
-#
+        #
         self._containing_meth_tbl = {}
         self._mapped_meth_tbl = {}
 
@@ -37420,7 +37425,7 @@ class Decomposer(object):
 
         self.setup_removed_meths()
         self.setup_added_meths()
-#
+        #
         self._containing_file_tbl = {}
         self._mapped_file_tbl = {}
 
@@ -37432,27 +37437,27 @@ class Decomposer(object):
 
         self.setup_removed_files()
         self.setup_added_files()
-#
-        self._vp_group_tbl = {} # ver * ver -> gid -> cid set
-        self._vp_rev_group_tbl = {} # ver * ver -> cid -> gid
+        #
+        self._vp_group_tbl = {}  # ver * ver -> gid -> cid set
+        self._vp_rev_group_tbl = {}  # ver * ver -> cid -> gid
 
-        self._lv_vp_stmt_group_tbl = {} # lv -> ver * ver -> gid -> cid set
-        self._lv_vp_rev_stmt_group_tbl = {} # lv -> ver * ver -> cid -> gid
-        for lv in range(self._max_stmt_level+1):
+        self._lv_vp_stmt_group_tbl = {}  # lv -> ver * ver -> gid -> cid set
+        self._lv_vp_rev_stmt_group_tbl = {}  # lv -> ver * ver -> cid -> gid
+        for lv in range(self._max_stmt_level + 1):
             self._lv_vp_stmt_group_tbl[lv] = {}
             self._lv_vp_rev_stmt_group_tbl[lv] = {}
 
-        self._vp_meth_group_tbl = {} # ver * ver -> gid -> cid set
-        self._vp_rev_meth_group_tbl = {} # ver * ver -> cid -> gid
+        self._vp_meth_group_tbl = {}  # ver * ver -> gid -> cid set
+        self._vp_rev_meth_group_tbl = {}  # ver * ver -> cid -> gid
 
-        self._vp_file_group_tbl = {} # ver * ver -> gid -> cid set
-        self._vp_rev_file_group_tbl = {} # ver * ver -> cid -> gid
+        self._vp_file_group_tbl = {}  # ver * ver -> gid -> cid set
+        self._vp_rev_file_group_tbl = {}  # ver * ver -> cid -> gid
 
         self._vp_id_list_tbl = {}
 
-        self._stmt_tbl = {} # ver -> ent set
-        self._modified_stmt_pair_tbl = {} # (ver * ver) -> (ent * ent) set
-        self._max_stmt_level_tbl = {} # (ver * ver) -> level
+        self._stmt_tbl = {}  # ver -> ent set
+        self._modified_stmt_pair_tbl = {}  # (ver * ver) -> (ent * ent) set
+        self._max_stmt_level_tbl = {}  # (ver * ver) -> level
 
         self.setup_stmt_tbl()
         self.setup_modified_stmt_pair_tbl()
@@ -37467,7 +37472,7 @@ class Decomposer(object):
         self._vp_rev_group_tbl[vp] = {}
 
     def setup_stmt_tbl(self):
-        q = STMT_QUERY % { 'proj_id' : self._proj_id }
+        q = STMT_QUERY % {'proj_id': self._proj_id}
         for qvs, row in self._sparql.query(q):
             stmt = row['stmt']
             ent = SourceCodeEntity(uri=stmt)
@@ -37475,7 +37480,7 @@ class Decomposer(object):
                 set_tbl_add(self._stmt_tbl, v, ent)
 
     def setup_modified_stmt_pair_tbl(self):
-        q = MODIFIED_STMT_QUERY % { 'proj_id' : self._proj_id }
+        q = MODIFIED_STMT_QUERY % {'proj_id': self._proj_id}
         for qvs, row in self._sparql.query(q):
             stmt = row['stmt']
             stmt_ = row['stmt_']
@@ -37506,10 +37511,10 @@ class Decomposer(object):
                 self._max_stmt_level_tbl[vp] = self._max_stmt_level
 
     def setup_target_fid_tbl(self):
-        q = FILE_LOC_QUERY % { 'proj_id' : self._proj_id }
+        q = FILE_LOC_QUERY % {'proj_id': self._proj_id}
         for qvs, row in self._sparql.query(q):
             ver = row['ver']
-            f   = row['f']
+            f = row['f']
             loc = row['loc']
 
             if self.check_loc(loc):
@@ -37521,7 +37526,7 @@ class Decomposer(object):
             logger.info('%d files selected for %s' % (len(self._target_fid_tbl[v]), v))
 
     def setup_containing_file_tbl(self):
-        q = CONTAINING_FILE_QUERY % { 'proj_id' : self._proj_id }
+        q = CONTAINING_FILE_QUERY % {'proj_id': self._proj_id}
         for qvs, row in self._sparql.query(q):
             ent = row['ent']
             f = row['f']
@@ -37540,7 +37545,7 @@ class Decomposer(object):
         return ok
 
     def setup_mapped_file_tbl(self):
-        q = MAPPED_FILE_QUERY % { 'proj_id' : self._proj_id }
+        q = MAPPED_FILE_QUERY % {'proj_id': self._proj_id}
         for qvs, row in self._sparql.query(q):
             f = row['f']
             f_ = row['f_']
@@ -37559,7 +37564,7 @@ class Decomposer(object):
         return f in self._mapped_file_tbl
 
     def setup_removed_files(self):
-        q = REMOVED_FILE_QUERY % { 'proj_id' : self._proj_id }
+        q = REMOVED_FILE_QUERY % {'proj_id': self._proj_id}
         for qvs, row in self._sparql.query(q):
             f = row['f']
             loc = row['loc']
@@ -37568,7 +37573,7 @@ class Decomposer(object):
         logger.info('%d removed files found' % len(self._removed_files))
 
     def setup_added_files(self):
-        q = ADDED_FILE_QUERY % { 'proj_id' : self._proj_id }
+        q = ADDED_FILE_QUERY % {'proj_id': self._proj_id}
         for qvs, row in self._sparql.query(q):
             f_ = row['f_']
             loc_ = row['loc_']
@@ -37622,7 +37627,7 @@ class Decomposer(object):
         return fkey
 
     def setup_containing_meth_tbl(self):
-        q = CONTAINING_METH_QUERY % { 'proj_id' : self._proj_id }
+        q = CONTAINING_METH_QUERY % {'proj_id': self._proj_id}
         for qvs, row in self._sparql.query(q):
             ent = row['ent']
             meth = row['meth']
@@ -37634,7 +37639,7 @@ class Decomposer(object):
         return self._containing_meth_tbl[ent]
 
     def setup_mapped_meth_tbl(self):
-        q = MAPPED_METH_QUERY % { 'proj_id' : self._proj_id }
+        q = MAPPED_METH_QUERY % {'proj_id': self._proj_id}
         for qvs, row in self._sparql.query(q):
             meth = row['meth']
             meth_ = row['meth_']
@@ -37651,7 +37656,7 @@ class Decomposer(object):
         return meth in self._mapped_meth_tbl
 
     def setup_removed_meths(self):
-        q = REMOVED_METH_QUERY % { 'proj_id' : self._proj_id }
+        q = REMOVED_METH_QUERY % {'proj_id': self._proj_id}
         for qvs, row in self._sparql.query(q):
             meth = row['meth']
             loc = row['loc']
@@ -37660,7 +37665,7 @@ class Decomposer(object):
         logger.info('%d removed methods found' % len(self._removed_meths))
 
     def setup_added_meths(self):
-        q = ADDED_METH_QUERY % { 'proj_id' : self._proj_id }
+        q = ADDED_METH_QUERY % {'proj_id': self._proj_id}
         for qvs, row in self._sparql.query(q):
             meth_ = row['meth_']
             loc_ = row['loc_']
@@ -37704,7 +37709,7 @@ class Decomposer(object):
         return mkey
 
     def setup_containing_stmt_tbl(self, lv):
-        q = CONTAINING_STMT_QUERY % { 'proj_id' : self._proj_id, 'lv' : lv }
+        q = CONTAINING_STMT_QUERY % {'proj_id': self._proj_id, 'lv': lv}
         for qvs, row in self._sparql.query(q):
             ent = row['ent']
             stmt = row['stmt']
@@ -37721,7 +37726,7 @@ class Decomposer(object):
         return self._containing_stmt_tbl[lv][ent]
 
     def setup_mapped_stmt_tbl(self, lv):
-        q = MAPPED_STMT_QUERY % { 'proj_id' : self._proj_id, 'lv' : lv }
+        q = MAPPED_STMT_QUERY % {'proj_id': self._proj_id, 'lv': lv}
         try:
             d = self._mapped_stmt_tbl[lv]
         except KeyError:
@@ -37743,7 +37748,7 @@ class Decomposer(object):
         return stmt in self._mapped_stmt_tbl[lv]
 
     def setup_removed_stmts(self, lv):
-        q = REMOVED_STMT_QUERY % { 'proj_id' : self._proj_id, 'lv' : lv }
+        q = REMOVED_STMT_QUERY % {'proj_id': self._proj_id, 'lv': lv}
         try:
             s = self._removed_stmts[lv]
         except KeyError:
@@ -37758,7 +37763,7 @@ class Decomposer(object):
         logger.info('%d removed statements found' % len(s))
 
     def setup_added_stmts(self, lv):
-        q = ADDED_STMT_QUERY % { 'proj_id' : self._proj_id, 'lv' : lv }
+        q = ADDED_STMT_QUERY % {'proj_id': self._proj_id, 'lv': lv}
         try:
             s = self._added_stmts[lv]
         except KeyError:
@@ -37818,9 +37823,9 @@ class Decomposer(object):
         except KeyError:
             pass
 
-        q = VER_QUERY % { 'fent'   : fent.get_uri(),
-                          'proj_id' : self._proj_id,
-        }
+        q = VER_QUERY % {'fent': fent.get_uri(),
+                         'proj_id': self._proj_id,
+                         }
 
         vers = set()
 
@@ -37849,10 +37854,10 @@ class Decomposer(object):
         except KeyError:
             pass
 
-        q = VER_PAIR_QUERY % { 'fent0'   : fent0.get_uri(),
-                               'fent1'   : fent1.get_uri(),
-                               'proj_id' : self._proj_id,
-                               }
+        q = VER_PAIR_QUERY % {'fent0': fent0.get_uri(),
+                              'fent1': fent1.get_uri(),
+                              'proj_id': self._proj_id,
+                              }
 
         pairs = set()
 
@@ -37931,7 +37936,7 @@ class Decomposer(object):
             except KeyError:
                 rev_vertex_tbl = {}
                 self._vp_rev_vertex_tbl[vp] = rev_vertex_tbl
-                
+
             rev_vertex_tbl[v] = h
 
         return v
@@ -37994,7 +37999,7 @@ class Decomposer(object):
 
         if not b:
             logger.debug('to be filtered: %s' % hunk)
-            #logger.warning('to be filtered: %s' % hunk)
+            # logger.warning('to be filtered: %s' % hunk)
 
         return b
 
@@ -38127,8 +38132,8 @@ class Decomposer(object):
 
         for _cids in sorted(cid_dep_tbl.keys()):
             mems = set()
-            cids = cid_dep_tbl[_cids] # _cids depend on cids
-            cs = list(cids)+list(_cids)
+            cids = cid_dep_tbl[_cids]  # _cids depend on cids
+            cs = list(cids) + list(_cids)
             for c in cs:
                 if c in compo_ids:
                     mems.add(c)
@@ -38138,7 +38143,7 @@ class Decomposer(object):
                         mems.add(g)
                     except KeyError:
                         pass
-                        #logger.warning('%s is dangling?' % c)
+                        # logger.warning('%s is dangling?' % c)
 
             gs = list(filter(isgid, list(mems)))
             if gs:
@@ -38178,7 +38183,6 @@ class Decomposer(object):
 
         return id_list
 
-
     def decompose(self, use_syn=True, use_ref=True, use_other=True, outfile=None, staged=False,
                   shuffle=0, optout=False):
 
@@ -38198,8 +38202,8 @@ class Decomposer(object):
         ins_hunks = []
         del_hunks = []
 
-        insrtbl = {} # mem -> hunk
-        delrtbl = {} # mem -> hunk
+        insrtbl = {}  # mem -> hunk
+        delrtbl = {}  # mem -> hunk
         # movrtbl = {} # mem -> hunk
 
         del_ins_list = []
@@ -38208,7 +38212,7 @@ class Decomposer(object):
         del_mov_list = []
         del_rel_list = []
         del_del_list = []
-        #mov__del_or_ins_list = []
+        # mov__del_or_ins_list = []
         rel_del_set = set()
         rel_ins_set = set()
         rel_rel_set = set()
@@ -38219,7 +38223,7 @@ class Decomposer(object):
         logger.info('finding insertions...')
         _query = qtbl.get('ins', None)
         if _query:
-            query = _query % { 'proj_id' : self._proj_id }
+            query = _query % {'proj_id': self._proj_id}
             for qvs, row in self._sparql.query(query):
                 x_ = row['x_']
                 ctx = row['ctx']
@@ -38246,13 +38250,13 @@ class Decomposer(object):
 
                 if s_:
                     set_tbl_add(sibling_tbl, s_, hunk)
-                    
+
                 if px_ and pctx and use_syn:
                     hunk._parent = Edit(K_INS, pctx, px_, loc, loc_, cat)
 
         _query = qtbl.get('ins_c', None)
         if _query:
-            query = _query % { 'proj_id' : self._proj_id }
+            query = _query % {'proj_id': self._proj_id}
             for qvs, row in self._sparql.query(query):
                 x_ = row['x_']
                 ctx = row['ctx']
@@ -38282,13 +38286,12 @@ class Decomposer(object):
         logger.info('%d ins hunks' % len(ins_hunks))
         logger.info('%d root ins hunks' % len(root_ins_hunks))
 
-
         # for file insertion
         logger.info('finding file insertions...')
         _query = qtbl.get('ins_file', None)
         file_ins_hunks = set()
         if _query:
-            query = _query % { 'proj_id' : self._proj_id }
+            query = _query % {'proj_id': self._proj_id}
             for qvs, row in self._sparql.query(query):
                 file_ = row['file_']
                 ctx = row['ctx']
@@ -38330,7 +38333,7 @@ class Decomposer(object):
         logger.info('finding deletions...')
         _query = qtbl.get('del', None)
         if _query:
-            query = _query % { 'proj_id' : self._proj_id }
+            query = _query % {'proj_id': self._proj_id}
             for qvs, row in self._sparql.query(query):
                 x = row['x']
                 ctx_ = row['ctx_']
@@ -38363,7 +38366,7 @@ class Decomposer(object):
 
         _query = qtbl.get('del_c', None)
         if _query:
-            query = _query % { 'proj_id' : self._proj_id }
+            query = _query % {'proj_id': self._proj_id}
             for qvs, row in self._sparql.query(query):
                 x = row['x']
                 ctx_ = row['ctx_']
@@ -38393,13 +38396,12 @@ class Decomposer(object):
         logger.info('%d del hunks' % len(del_hunks))
         logger.info('%d root del hunks' % len(root_del_hunks))
 
-
         # for file deletion
         logger.info('finding file deletions...')
         _query = qtbl.get('del_file', None)
         file_del_hunks = set()
         if _query:
-            query = _query % { 'proj_id' : self._proj_id }
+            query = _query % {'proj_id': self._proj_id}
             for qvs, row in self._sparql.query(query):
                 _file = row['file']
                 ctx_ = row['ctx_']
@@ -38441,7 +38443,7 @@ class Decomposer(object):
         _query = qtbl.get('mov_file', None)
         file_mov_hunks = set()
         if _query:
-            query = _query % { 'proj_id' : self._proj_id }
+            query = _query % {'proj_id': self._proj_id}
             for qvs, row in self._sparql.query(query):
                 _file = row['file']
                 file_ = row['file_']
@@ -38467,7 +38469,7 @@ class Decomposer(object):
         _query = qtbl.get('chg_file', None)
         file_chg_hunks = set()
         if _query:
-            query = _query % { 'proj_id' : self._proj_id }
+            query = _query % {'proj_id': self._proj_id}
             for qvs, row in self._sparql.query(query):
                 _file = row['file']
                 file_ = row['file_']
@@ -38492,16 +38494,16 @@ class Decomposer(object):
         logger.info('finding relabelings...')
         _query = qtbl.get('rel', None)
         if _query:
-            query = _query % { 'proj_id' : self._proj_id }
+            query = _query % {'proj_id': self._proj_id}
             for qvs, row in self._sparql.query(query):
-                x    = row['x']
-                x_   = row['x_']
+                x = row['x']
+                x_ = row['x_']
                 loc = row.get('loc', None)
                 loc_ = row.get('loc_', None)
-                cat  = row['cat']
+                cat = row['cat']
                 cx = row.get('cx', None)
                 cx_ = row.get('cx_', None)
-                cat_cx  = row.get('cat_cx' ,None)
+                cat_cx = row.get('cat_cx', None)
 
                 key = (x, x_)
                 hunk = self.get_hunk(K_REL, key)
@@ -38528,13 +38530,13 @@ class Decomposer(object):
         logger.info('finding relabeling-deletion couplings...')
         _query = qtbl.get('rel_del', None)
         if _query and use_syn:
-            query = _query % { 'proj_id' : self._proj_id }
+            query = _query % {'proj_id': self._proj_id}
             for qvs, row in self._sparql.query(query):
-                x    = row['x']
-                x_   = row['x_']
+                x = row['x']
+                x_ = row['x_']
                 loc = row.get('loc', None)
                 loc_ = row.get('loc_', None)
-                cat  = row['cat']
+                cat = row['cat']
 
                 cx = row['cx']
                 ctx_ = row['ctx_']
@@ -38560,13 +38562,13 @@ class Decomposer(object):
         logger.info('finding relabeling-insertion couplings...')
         _query = qtbl.get('rel_ins', None)
         if _query and use_syn:
-            query = _query % { 'proj_id' : self._proj_id }
+            query = _query % {'proj_id': self._proj_id}
             for qvs, row in self._sparql.query(query):
-                x    = row['x']
-                x_   = row['x_']
+                x = row['x']
+                x_ = row['x_']
                 loc = row.get('loc', None)
                 loc_ = row.get('loc_', None)
-                cat  = row['cat']
+                cat = row['cat']
 
                 cx_ = row.get('cx_', None)
                 ctx = row.get('ctx', None)
@@ -38592,19 +38594,19 @@ class Decomposer(object):
         logger.info('finding moves...')
         _query = qtbl.get('mov', None)
         if _query:
-            query = _query % { 'proj_id' : self._proj_id }
+            query = _query % {'proj_id': self._proj_id}
             for qvs, row in self._sparql.query(query):
-                x    = row['x']
-                x_   = row['x_']
-                ctx  = row['ctx']
+                x = row['x']
+                x_ = row['x_']
+                ctx = row['ctx']
                 ctx_ = row['ctx_']
                 loc = row.get('loc', None)
                 loc_ = row.get('loc_', None)
-                cat  = row['cat']
-                cat_  = row['cat_']
-                cx    = row.get('cx', None)
-                cx_   = row.get('cx_', None)
-                cat_cx  = row.get('cat_cx', None)
+                cat = row['cat']
+                cat_ = row['cat_']
+                cx = row.get('cx', None)
+                cx_ = row.get('cx_', None)
+                cat_cx = row.get('cat_cx', None)
                 cat_cx_ = row.get('cat_cx_', None)
 
                 key = (x, x_)
@@ -38637,12 +38639,12 @@ class Decomposer(object):
                         exit(1)
 
                     if root.ent != del_hunk.root.ent:
-                        #logger.warning('entity mismatch: %s and %s' % (hunk, del_hunk))
+                        # logger.warning('entity mismatch: %s and %s' % (hunk, del_hunk))
                         d = Edit(K_DEL, x, ctx_, loc, loc_, cat)
                         del_hunk = Hunk(d)
 
                     if root.ent_ != ins_hunk.root.ent_:
-                        #logger.warning('entity mismatch: %s and %s' % (hunk, ins_hunk))
+                        # logger.warning('entity mismatch: %s and %s' % (hunk, ins_hunk))
                         i = Edit(K_INS, ctx, x_, loc, loc_, cat_)
                         ins_hunk = Hunk(i)
 
@@ -38668,23 +38670,22 @@ class Decomposer(object):
             logger.info('%d mov hunks' % len(mov_hunks))
             # logger.info('%d root mov hunks' % len(root_mov_hunks))
 
-
         # for movrel
         logger.info('finding movrels...')
         _query = qtbl.get('movrel', None)
         movrels = set()
         if _query:
             movrel_cache = {}
-            query = _query % { 'proj_id' : self._proj_id }
+            query = _query % {'proj_id': self._proj_id}
             for qvs, row in self._sparql.query(query):
-                x    = row['x']
-                x_   = row['x_']
-                #ctx  = row['ctx']
-                #ctx_ = row['ctx_']
+                x = row['x']
+                x_ = row['x_']
+                # ctx  = row['ctx']
+                # ctx_ = row['ctx_']
                 loc = row.get('loc', None)
                 loc_ = row.get('loc_', None)
-                cat  = row['cat']
-                cat_  = row['cat_']
+                cat = row['cat']
+                cat_ = row['cat_']
 
                 key = (x, x_)
 
@@ -38718,15 +38719,15 @@ class Decomposer(object):
         for qn in ['del_ins_u', 'del_ins_l', 'del_ins_ln', 'del_ins_mov']:
             _query = qtbl.get(qn, None)
             if _query and use_syn:
-                query = _query % { 'proj_id' : self._proj_id }
+                query = _query % {'proj_id': self._proj_id}
                 for qvs, row in self._sparql.query(query):
-                    x    = row['x']
+                    x = row['x']
                     ctx_ = row['ctx_']
-                    x_   = row['x_']
-                    ctx  = row['ctx']
-                    cat  = row['cat']
+                    x_ = row['x_']
+                    ctx = row['ctx']
+                    cat = row['cat']
                     cat_ = row['cat_']
-                    loc  = row.get('loc', None)
+                    loc = row.get('loc', None)
                     loc_ = row.get('loc_', None)
 
                     del_hunk = self.get_hunk(K_DEL, (x, ctx_))
@@ -38757,7 +38758,7 @@ class Decomposer(object):
         rel_ins_vtbl = self.classify_hunk_pair_list(rel_ins_set)
         rel_rel_vtbl = self.classify_hunk_pair_list(rel_rel_set)
         sibling_vtbl = self.classify_hunk_set_list(sibling_tbl.values())
-        
+
         vps = set()
         vps |= set(root_del_hunk_vtbl.keys())
         vps |= set(root_ins_hunk_vtbl.keys())
@@ -38828,12 +38829,13 @@ class Decomposer(object):
                     g.add_edge(v0, v1, prop='sibling')
 
             logger.info('%d vertices' % g.num_vertices())
-            
+
         if use_ref:
             # coupling by refactoring
 
-            vpvtbl = {} # ver * ver -> Ref -> vertex
-            vphtbl = {} # ver * ver -> Ref -> hunk list
+            vpvtbl = {}  # ver * ver -> Ref -> vertex
+            vphtbl = {}  # ver * ver -> Ref -> hunk list
+
             def vpmkv(vp, ref):
                 try:
                     vtbl = vpvtbl[vp]
@@ -38857,20 +38859,20 @@ class Decomposer(object):
                 qcount += 1
                 sys.stdout.write('[%d] %s' % (qcount, query_name))
                 sys.stdout.flush()
-                query = _query % { 'proj_id' : self._proj_id }
+                query = _query % {'proj_id': self._proj_id}
                 hit = 0
                 for qvs, row in self._sparql.query(query):
                     hit += 1
-                    ref  = row['ref']
+                    ref = row['ref']
                     sig_ = row['sig_']
-                    ent  = row['ent']
+                    ent = row['ent']
                     ent_ = row['ent_']
 
                     eo = SourceCodeEntity(uri=ent)
                     eo_ = SourceCodeEntity(uri=ent_)
 
                     vps0 = self._get_version_pairs(eo, eo_)
-                    
+
                     selected_vps = self.get_selected_vps(vps0)
 
                     if len(selected_vps) == 0:
@@ -38910,28 +38912,27 @@ class Decomposer(object):
                                 g.add_edge(v, self.vpmkv(vp, hunk), prop=r.refname)
                         else:
                             logger.warning('[%d][%s][%s] hunk not found for %s %s %s' % (qcount,
-                                                                                       query_name,
-                                                                                       vp_to_str(vp),
-                                                                                       kind,
-                                                                                       get_localname(ent),
-                                                                                       get_localname(ent_)))
+                                                                                         query_name,
+                                                                                         vp_to_str(vp),
+                                                                                         kind,
+                                                                                         get_localname(ent),
+                                                                                         get_localname(ent_)))
                 sys.stdout.write(': %d\n' % hit)
                 sys.stdout.flush()
-
 
             for (vp, htbl) in vphtbl.items():
                 logger.debug('%s: %d refactorings:' % (vp_to_str(vp), len(htbl)))
                 for (ref, hs) in htbl.items():
-                    #logger.debug('%s (%d)' % (ref, len(hs)))
+                    # logger.debug('%s (%d)' % (ref, len(hs)))
                     for h in hs:
                         self._ref_hunks.add(h)
-
 
         if use_other:
             # coupling by other changes
 
-            vpvtbl = {} # ver * ver -> Chg -> vertex
-            vphtbl = {} # ver * ver -> Chg -> hunk list
+            vpvtbl = {}  # ver * ver -> Chg -> vertex
+            vphtbl = {}  # ver * ver -> Chg -> hunk list
+
             def vpmkv(vp, chg):
                 try:
                     vtbl = vpvtbl[vp]
@@ -38961,14 +38962,14 @@ class Decomposer(object):
                 qcount += 1
                 sys.stdout.write('[%d] %s' % (qcount, query_name))
                 sys.stdout.flush()
-                query = _query % { 'proj_id' : self._proj_id }
+                query = _query % {'proj_id': self._proj_id}
                 hit = 0
                 for qvs, row in self._sparql.query(query):
                     hit += 1
-                    key  = row['key']
+                    key = row['key']
                     key_ = row['key_']
                     name = row.get('name', '')
-                    ent  = row['ent']
+                    ent = row['ent']
                     ent_ = row['ent_']
 
                     ko = SourceCodeEntity(uri=key)
@@ -39044,12 +39045,10 @@ class Decomposer(object):
                 sys.stdout.flush()
                 logger.info('[{}] {}: {}'.format(qcount, query_name, hit))
 
-
             for (vp, htbl) in vphtbl.items():
                 logger.debug('%s: %d other changes' % (vp_to_str(vp), len(htbl)))
                 # for (chg, hs) in htbl.items():
                 #     logger.debug('%s (%d)' % (chg, len(hs)))
-
 
             # directed coupling by other changes
 
@@ -39067,16 +39066,16 @@ class Decomposer(object):
                 qcount += 1
                 sys.stdout.write('[%d] %s' % (qcount, query_name))
                 sys.stdout.flush()
-                query = _query % { 'proj_id' : self._proj_id }
+                query = _query % {'proj_id': self._proj_id}
                 hit = 0
                 for qvs, row in self._sparql.query(query):
                     hit += 1
-                    dep  = row['dep']
+                    dep = row['dep']
                     dep_ = row['dep_']
 
                     ents = []
                     ents_ = []
-                    
+
                     if nkinds == 1:
                         ents.append(row['ent'])
                         ents_.append(row['ent_'])
@@ -39098,7 +39097,7 @@ class Decomposer(object):
 
                     if len(selected_vps) == 0:
                         continue
-                    
+
                     hunks = []
                     for i in range(nkinds):
                         kind = kinds[i]
@@ -39147,9 +39146,6 @@ class Decomposer(object):
                 sys.stdout.flush()
                 logger.info('[{}] {}: {}'.format(qcount, query_name, hit))
 
-
-
-
         # # for ins-mov coupling
         # logger.info('finding insertion-move couplings...')
         # _query = qtbl.get('ins_mov', None)
@@ -39187,7 +39183,7 @@ class Decomposer(object):
         logger.info('finding insertion-relabel couplings...')
         _query = qtbl.get('ins_rel', None)
         if _query and use_syn:
-            query = _query % { 'proj_id' : self._proj_id }
+            query = _query % {'proj_id': self._proj_id}
             for qvs, row in self._sparql.query(query):
                 x_ = row['x_']
                 ctx = row['ctx']
@@ -39250,7 +39246,7 @@ class Decomposer(object):
         logger.info('finding deletion-relabel couplings...')
         _query = qtbl.get('del_rel', None)
         if _query and use_syn:
-            query = _query % { 'proj_id' : self._proj_id }
+            query = _query % {'proj_id': self._proj_id}
             for qvs, row in self._sparql.query(query):
                 x = row['x']
                 ctx_ = row['ctx_']
@@ -39281,7 +39277,7 @@ class Decomposer(object):
         for mov_rel in ('mov_rel', 'mov_rel_ex', 'mov_rel_ex2'):
             _query = qtbl.get(mov_rel, None)
             if _query and use_syn:
-                query = _query % { 'proj_id' : self._proj_id }
+                query = _query % {'proj_id': self._proj_id}
                 mov_rel_count = 0
                 for qvs, row in self._sparql.query(query):
                     x = row['x']
@@ -39319,7 +39315,7 @@ class Decomposer(object):
         logger.info('finding deletion-deletion couplings...')
         _query = qtbl.get('del_del', None)
         if _query and use_syn:
-            query = _query % { 'proj_id' : self._proj_id }
+            query = _query % {'proj_id': self._proj_id}
             mov_rel_count = 0
             for qvs, row in self._sparql.query(query):
                 x = row['x']
@@ -39392,13 +39388,12 @@ class Decomposer(object):
 
         #     logger.info('%d mov-(del|ins) couplings' % len(mov__del_or_ins_list))
 
-
         ins_mov_vtbl = self.classify_hunk_pair_list(ins_mov_list)
         del_mov_vtbl = self.classify_hunk_pair_list(del_mov_list)
         ins_rel_vtbl = self.classify_hunk_pair_list(ins_rel_list)
         del_rel_vtbl = self.classify_hunk_pair_list(del_rel_list)
         del_del_vtbl = self.classify_hunk_pair_list(del_del_list)
-        #mov__del_or_ins_vtbl = self.classify_hunk_pair_list(mov__del_or_ins_list)
+        # mov__del_or_ins_vtbl = self.classify_hunk_pair_list(mov__del_or_ins_list)
 
         for vp in vps:
             if not self.is_selected_vp(vp):
@@ -39554,7 +39549,7 @@ class Decomposer(object):
                     for (_cids, cids) in prev_cids_pair_list:
                         _cids_set = set(_cids)
                         dep_add = True
-                        
+
                         if _cids_set & optout_compos:
                             dep_add = False
                         else:
@@ -39584,15 +39579,15 @@ class Decomposer(object):
                 logger.debug('{%s} depends on {%s}' % (cids_to_string(_cids),
                                                        cids_to_string(cids)))
 
-            lv_wsgtbl = {} # for statement groups (weak)
-            wmgtbl = {} # for method groups (weak)
-            wfgtbl = {} # for file groups (weak)
-            lv_ssgtbl = {} # for statement groups (strong)
-            smgtbl = {} # for method groups (strong)
-            sfgtbl = {} # for file groups (strong)
+            lv_wsgtbl = {}  # for statement groups (weak)
+            wmgtbl = {}  # for method groups (weak)
+            wfgtbl = {}  # for file groups (weak)
+            lv_ssgtbl = {}  # for statement groups (strong)
+            smgtbl = {}  # for method groups (strong)
+            sfgtbl = {}  # for file groups (strong)
             htbl = {}
 
-            for lv in range(self._max_stmt_level+1):
+            for lv in range(self._max_stmt_level + 1):
                 lv_wsgtbl[lv] = {}
                 lv_ssgtbl[lv] = {}
 
@@ -39601,7 +39596,7 @@ class Decomposer(object):
                 len_hs = len(hs)
 
                 if staged:
-                    for lv in range(self._max_stmt_level+1):
+                    for lv in range(self._max_stmt_level + 1):
                         sks = [self.get_stmt_key(lv, h) for h in hs]
                         if sks:
                             skey = sks[0]
@@ -39628,7 +39623,6 @@ class Decomposer(object):
                         if fk != None:
                             set_tbl_add(sfgtbl, fk, cid)
 
-
                 logger.debug('%d (%d):' % (cid, len_hs))
                 for h in hs:
                     logger.debug(h)
@@ -39646,7 +39640,7 @@ class Decomposer(object):
 
             if staged:
                 logger.info('setting up stmt groups...')
-                for lv in range(self._max_stmt_level+1):
+                for lv in range(self._max_stmt_level + 1):
                     logger.info('stmt level: %d' % lv)
                     # (group_tbl, rev_group_tbl,
                     #  compo_ids, group_ids) = self.get_weak_group_tbl(vp, lv_wsgtbl[lv])
@@ -39680,17 +39674,17 @@ class Decomposer(object):
                 group_tbl = self._vp_group_tbl[vp]
                 rev_group_tbl = self._vp_rev_group_tbl[vp]
 
-                #fuse compos and groups based on change dep.
+                # fuse compos and groups based on change dep.
                 id_list = self.fuse_compos_and_groups_by_change_dep(vp,
                                                                     group_tbl, rev_group_tbl,
                                                                     compo_ids, group_ids,
                                                                     restrict=False)
-                #id_list = list(compo_ids | group_ids)
-                #id_list.sort(key=getnum)
+                # id_list = list(compo_ids | group_ids)
+                # id_list.sort(key=getnum)
 
                 self._vp_id_list_tbl[vp] = id_list
 
-            else: # if not staged
+            else:  # if not staged
                 id_list = self.get_compo_ids(vp)
                 id_list.sort(key=getnum)
                 self._vp_id_list_tbl[vp] = id_list
@@ -39772,11 +39766,13 @@ class Decomposer(object):
     def show_compo_ids_tbl(self):
         for (vp, compo_tbl) in self._vp_compo_tbl.items():
             print('*** {}'.format(vp_to_str(vp)))
+            write_data('regression: {}\n'.format(vp_to_str(vp)))
             for cid, hunks in compo_tbl.items():
                 print('[{}]'.format(cid))
+                write_data('[{}]\n'.format(cid))
                 for hunk in hunks:
                     print(' {}'.format(hunk))
-
+                    write_data(' {}\n'.format(hunk))
 
     def get_compo_ids(self, vp):
         return list(self._vp_compo_tbl[vp].keys())
@@ -39866,8 +39862,8 @@ class Decomposer(object):
                 except KeyError:
                     ys.add(c)
             logger.info('[%d] components (%d): %s' % (count,
-                                                       len(ys),
-                                                       sorted(list(ys), key=getnum)))
+                                                      len(ys),
+                                                      sorted(list(ys), key=getnum)))
             compo_ids = self.get_cids(vp, ys)
             r = self.add_dependency(vp, compo_ids)
 
@@ -39985,8 +39981,8 @@ class Decomposer(object):
                     ds.add(c)
             ys.difference_update(ds)
             logger.info('[%d] components (%d): %s' % (count,
-                                                       len(ys),
-                                                       sorted(list(ys), key=getnum)))
+                                                      len(ys),
+                                                      sorted(list(ys), key=getnum)))
             compo_ids = self.get_cids(vp, ys)
             r = self.remove_dependency(vp, compo_ids)
 
@@ -40020,9 +40016,9 @@ class Decomposer(object):
 
         if self._xml_tbl == {}:
             logger.info('creating xml table...')
-            query = Q_DELTA_XML % { 'proj_id' : self._proj_id }
+            query = Q_DELTA_XML % {'proj_id': self._proj_id}
             for qvs, row in self._sparql.query(query):
-                x   = row['x']
+                x = row['x']
                 xml = row['xml']
                 set_tbl_add(self._xml_tbl, x, xml)
 
@@ -40032,7 +40028,7 @@ class Decomposer(object):
             self._modified_path_tbl = {}
             self._rev_modified_path_tbl = {}
 
-            query = Q_MODIFIED_PATH % { 'proj_id' : self._proj_id }
+            query = Q_MODIFIED_PATH % {'proj_id': self._proj_id}
             for qvs, row in self._sparql.query(query):
                 path = row['path']
                 path_ = row['path_']
@@ -40045,7 +40041,7 @@ class Decomposer(object):
 
         logger.info('creating hunk table...')
 
-        hunk_tbl = {} # loc -> hunk list
+        hunk_tbl = {}  # loc -> hunk list
         ignored_hunks = []
 
         r = self._remove_dependency(vp, compo_ids)
@@ -40079,7 +40075,6 @@ class Decomposer(object):
                     loc1 = ''
 
                     if loc_:
-
                         # if loc_.find('RowAction.java') >= 0:
                         #     print('%d %s:' % (compo_id, h))
                         #     for x in self._xml_tbl.get(h.get_chginst(), []):
@@ -40100,13 +40095,12 @@ class Decomposer(object):
                     elif loc:
                         tbl_add(hunk_tbl, loc1, h)
 
-
         if ignored_hunks:
             logger.info('%d hunks ignored' % len(ignored_hunks))
 
-        inst_tbl = {} # loc -> inst set
+        inst_tbl = {}  # loc -> inst set
 
-        movrel_inst_tbl = {} # inst -> inst list
+        movrel_inst_tbl = {}  # inst -> inst list
 
         del_insts = set()
         ins_insts = set()
@@ -40180,9 +40174,9 @@ class Decomposer(object):
 
             for loc, insts in inst_tbl.items():
                 if loc:
-                    f.write(DELTA_HEAD % {'lang':self._lang,'loc':loc})
+                    f.write(DELTA_HEAD % {'lang': self._lang, 'loc': loc})
                 else:
-                    f.write(DIR_DELTA_HEAD % {'lang':self._lang})
+                    f.write(DIR_DELTA_HEAD % {'lang': self._lang})
 
                 for inst in insts:
 
@@ -40244,6 +40238,7 @@ class Decomposer(object):
 
         logger.info('%d keys missed' % len(keys))
 
+
 def main():
     from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
 
@@ -40282,7 +40277,6 @@ def main():
     parser.add_argument('--ver', dest='vers', action='append', default=None,
                         metavar='VER', type=str, help='specify versions')
 
-
     args = parser.parse_args()
 
     log_level = logging.WARNING
@@ -40308,6 +40302,7 @@ def main():
                               ignore_ref=args.ignoreref)
 
     decomp.show_compo_ids_tbl()
+
 
 if __name__ == '__main__':
     main()

@@ -31,6 +31,7 @@ from misc import ensure_dir
 from setup_factbase import FB
 from ddjava import A_DD, A_DDMIN, A_PRODD
 from decompose_delta import MAX_STMT_LEVEL, MODIFIED_STMT_RATE_THRESH
+from DD import write_data
 
 import misc
 import setup_factbase
@@ -61,6 +62,7 @@ STAT_FILE = os.path.join(VAR_DIR, 'status')
 
 #
 
+
 def set_status(mes):
     logger.log(DEFAULT_LOGGING_LEVEL, mes)
     try:
@@ -79,6 +81,7 @@ def shutdown_virtuoso(proj_id):
 
 
 def main():
+    begin = time.perf_counter()
     from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
 
     parser = ArgumentParser(description='DD for Java programs',
@@ -206,6 +209,10 @@ def main():
     # diff dirs
     ensure_dir(DIFF_CACHE_DIR)
     set_status('comparing "{}" with "{}"...'.format(v_good, v_bad))
+    write_data('project: {}\n'.format(proj_id))
+    write_data('v_good: {}\n'.format(v_good))
+    write_data('v_bad: {}\n'.format(v_bad))
+
     dir_good = os.path.join(args.proj_dir, v_good)
     dir_bad = os.path.join(args.proj_dir, v_bad)
     r = diff_dirs(diffast, dir_good, dir_bad,
@@ -282,6 +289,8 @@ def main():
         proc.system(cmd)
 
     set_status('finished.')
+
+    write_data(f'run time: {int(time.perf_counter() - begin)}s')
 
 
 

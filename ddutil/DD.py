@@ -209,8 +209,8 @@ class DD:
     # purposes.
 
     # Test outcomes.
-    PASS = "PASS"
-    FAIL = "FAIL"
+    PASS = "FAIL"
+    FAIL = "PASS"
     UNRESOLVED = "UNRESOLVED"
 
     # Resolving directions.
@@ -692,6 +692,7 @@ class DD:
                         delta = (self.computRatio(delIdx, p) - 1) * p[setd]
                         p[setd] = p[setd] + delta
             run = run + 1
+            write_data(repr(p) + "\n")
 
         write_data('loop time: {}\n'.format(run))
         return c

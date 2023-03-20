@@ -389,9 +389,11 @@ class JavaDD(DD, object):
         if True:  # len(csub) > len(c) / 4:
             if direction == DD.ADD:
                 logger.info('dir=ADD')
+                write_data('dir=ADD\n')
                 result = self._decomp.add_dependency_g(self._vp, csub)
             elif direction == DD.REMOVE:
                 logger.info('dir=REMOVE')
+                write_data('dir=REMOVE')
                 result = self._decomp.remove_dependency_g(self._vp, csub)
 
         return result
@@ -1036,6 +1038,7 @@ def run(algo, proj_id, working_dir, conf=None, src_dir=None, vers=None,
         noresolve=False,
         noref=False,
         nochg=False,
+        port=None,
         shuffle=False,
         optout=False,
         max_stmt_level=MAX_STMT_LEVEL,
@@ -1048,6 +1051,7 @@ def run(algo, proj_id, working_dir, conf=None, src_dir=None, vers=None,
                  resolve=(not noresolve),
                  staged=staged,
                  max_stmt_level=max_stmt_level,
+                 port=port,
                  modified_stmt_rate_thresh=modified_stmt_rate_thresh,
                  custom_split=custom_split, set_status=set_status)
 
@@ -1218,6 +1222,9 @@ def main():
     parser.add_argument('--nochg', dest='nochg', default=False, action='store_true',
                         help='disable change coupling based on change dependency')
 
+    parser.add_argument('--port', dest='port', default=VIRTUOSO_PORT,
+                        metavar='PORT', type=int, help='set port number')
+
     parser.add_argument('--ver', dest='vers', action='append', default=None,
                         metavar='VER', type=str, help='specify versions')
 
@@ -1237,6 +1244,7 @@ def main():
 
     run(args.algo, args.proj_id, args.working_dir, src_dir=src_dir, vers=args.vers, script_dir=args.script_dir,
         staged=args.staged, keep_going=args.keep_going, noresolve=args.noresolve, noref=args.noref, nochg=args.nochg,
+        port=args.port,
         shuffle=args.shuffle, optout=args.optout, max_stmt_level=args.max_stmt_level,
         modified_stmt_rate_thresh=args.modified_stmt_rate_thresh, custom_split=args.custom_split, greedy=args.greedy)
 

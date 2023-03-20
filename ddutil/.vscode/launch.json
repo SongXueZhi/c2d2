@@ -11,7 +11,7 @@
             "program": "${file}",
             "console": "integratedTerminal",
             "justMyCode": true,
-            "args": ["/var/lib/cca/project","20_ric","20_work","--build-script","build.sh","--test-script","test.sh","--include","src/main/java","-a","ddmin","-d","--max-stmt-level","8","--modified-stmt-rate-thresh","0.05","--mem","8","--noresolve","--noref","--nochg"]
+            "args": ["/var/lib/project","20_ric","20_work","--build-script","build.sh","--test-script","test.sh","--include","src/main/java","-a","prodd","-d", "-v", "--port", "2222"]
         }
     ]
 }

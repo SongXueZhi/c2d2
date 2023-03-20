@@ -186,6 +186,7 @@ def main():
     v_good = args.v_good
     v_bad = args.v_bad
 
+    port = args.port
     keep_going = args.keep_going
 
     installer_path = os.path.join(args.proj_dir, DEPENDENCIES_INSTALLER)
@@ -236,7 +237,7 @@ def main():
                   keep_going=keep_going,
                   use_sim=True,
                   sim_thresh=FILE_SIM_THRESH,
-                  quiet=False
+                  quiet=False,
     )
     cost      = r['cost']
     nmappings = r['nmappings']
@@ -271,7 +272,7 @@ def main():
     ok = ddjava.run(args.algo, proj_id, DD_DIR, src_dir=args.proj_dir, conf=conf,
                     build_script=args.build_script, test_script=args.test_script, staged=args.staged,
                     keep_going=keep_going, shuffle=args.shuffle, custom_split=args.custom_split,
-                    noresolve=args.noresolve, noref=args.noref, nochg=args.nochg,
+                    noresolve=args.noresolve, noref=args.noref, nochg=args.nochg, port=args.port,
                     max_stmt_level=args.max_stmt_level,
                     modified_stmt_rate_thresh=args.modified_stmt_rate_thresh,
                     greedy=args.greedy, set_status=set_status)

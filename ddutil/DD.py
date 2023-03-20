@@ -581,7 +581,6 @@ class DD:
                 directionbar = self.REMOVE
             else:
                 directionbar = self.ADD
-
             (tbar, csubbar) = self.test_and_resolve(csubbar, [], cbar,
                                                     directionbar)
 
@@ -594,6 +593,15 @@ class DD:
             else:
                 t = self.UNRESOLVED
 
+        return (t, csub)
+
+    # todo
+    def test_mix_prodd(self, csub, c):
+        (t, csub) = self.test_and_resolve(csub, [], c, self.ADD)
+        if t == self.FAIL:
+            return (t, csub)
+        else:
+            (t, csub) = self.test_and_resolve(csub, [], c, self.REMOVE)
         return (t, csub)
 
     # Delta Debugging (new ISSTA version)
@@ -681,7 +689,15 @@ class DD:
             if len(delIdx) == 0:
                 break
             idx2test = self.getIdx2test(c, delIdx)
-            if self.test(idx2test) == self.FAIL:  # set probabilities of the deleted elements to 0
+            # todo
+            res = self.test(idx2test)
+            if (res != self.FAIL):
+                (t, csub) = self.test_mix_prodd(idx2test, c)
+            if (t == self.FAIL):
+                res = t
+                idx2test = csub
+                delIdx = self.getIdx2test(c, idx2test)
+            if res == self.FAIL:  # set probabilities of the deleted elements to 0
                 for set0 in range(0, len(p)):
                     if set0 not in idx2test:
                         p[set0] = 0
@@ -692,7 +708,7 @@ class DD:
                         delta = (self.computRatio(delIdx, p) - 1) * p[setd]
                         p[setd] = p[setd] + delta
             run = run + 1
-            write_data(repr(p) + "\n")
+            write_data("p: " + repr(p) + "\n")
 
         write_data('loop time: {}\n'.format(run))
         return c

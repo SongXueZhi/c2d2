@@ -71,11 +71,11 @@ def set_status(mes):
     except Exception as e:
         logger.warning(str(e))
 
-def shutdown_virtuoso(proj_id):
+def shutdown_virtuoso(proj_id, port):
     if misc.is_virtuoso_running():
         logger.info('shutting down virtuoso for {}...'.format(proj_id))
         fb_dir = os.path.join(FB_DIR, proj_id)
-        v = virtuoso.base(dbdir=fb_dir, pw=VIRTUOSO_PW, port=VIRTUOSO_PORT)
+        v = virtuoso.base(dbdir=fb_dir, pw=VIRTUOSO_PW, port=port)
         v.shutdown_server()
         logger.info('done.')
 
@@ -280,7 +280,7 @@ def main():
     if ok:
         # shutdown virtuoso
         set_status('shutting down virtuoso...')
-        shutdown_virtuoso(proj_id)
+        shutdown_virtuoso(proj_id, port)
 
         # make text patches
         set_status('making text patches...')

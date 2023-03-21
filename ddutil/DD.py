@@ -689,14 +689,15 @@ class DD:
             if len(delIdx) == 0:
                 break
             idx2test = self.getIdx2test(c, delIdx)
-            # todo
+
             res = self.test(idx2test)
             if (res != self.FAIL):
                 (t, csub) = self.test_mix_prodd(idx2test, c)
-            if (t == self.FAIL):
-                res = t
-                idx2test = csub
-                delIdx = self.getIdx2test(c, idx2test)
+                if (t == self.FAIL):
+                    res = t
+                    idx2test = csub
+                    delIdx = self.getIdx2test(c, idx2test)
+
             if res == self.FAIL:  # set probabilities of the deleted elements to 0
                 for set0 in range(0, len(p)):
                     if set0 not in idx2test:

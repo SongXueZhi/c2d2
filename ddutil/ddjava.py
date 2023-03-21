@@ -389,13 +389,13 @@ class JavaDD(DD, object):
         if True:  # len(csub) > len(c) / 4:
             if direction == DD.ADD:
                 logger.info('dir=ADD')
-                write_data('dir=ADD\n')
+                write_data('dir=ADD')
                 result = self._decomp.add_dependency_g(self._vp, csub)
             elif direction == DD.REMOVE:
                 logger.info('dir=REMOVE')
                 write_data('dir=REMOVE')
                 result = self._decomp.remove_dependency_g(self._vp, csub)
-
+        write_data(" " + repr(result) + "\n")
         return result
 
     def add_dependency(self, c):

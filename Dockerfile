@@ -6,7 +6,9 @@ LABEL maintainer="sxzdhu"
 RUN set -x && \
     rm -rf /opt/cca/ddutil && \
     rm -rf /opt/cca/esecfse2018 && \
-    rm -rf /opt/cca/regression_examples 
+    rm -rf /opt/cca/regression_examples && \
+    pip install networkx && \
+    pip install tabulate
 
 COPY ddutil /opt/cca/ddutil
 

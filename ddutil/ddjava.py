@@ -311,7 +311,7 @@ class JavaDD(DD, object):
             cmd = '%s %s' % (self._build_script, path)
             return proc.system(cmd)
 
-    def do_test(self, path):
+    def do_test (self, path):
         if self._test_script == None:
             return proc.check_output('./'+self._test_script_name, cwd=path)
         else:
@@ -422,8 +422,12 @@ class JavaDD(DD, object):
         n = len(cids)
         logger.info('components (%d): %s' % (n, cids))
         return n
-
-    def _test(self, c, uid=None, ignore_ref=False, keep_variant=False):
+    
+    def _build(self,c, uid=None, ignore_ref=False, keep_variant=False, ce_set:set ={}):
+        
+        if self.get_list_str(c) in ce_set:
+            return False, None,None
+        
         if uid == None:
             uid = str(uuid4())
 
@@ -445,7 +449,7 @@ class JavaDD(DD, object):
                                     ignore_ref=ignore_ref)
         except DependencyCheckFailedException as e:
             logger.warning('there are unmet dependencies: %s' % e)
-            return DD.UNRESOLVED
+            return False, None, None
 
         # prepare patched source
 
@@ -488,7 +492,7 @@ class JavaDD(DD, object):
                 except Exception as e:
                     logger.warning('%s' % e)
 
-            return DD.UNRESOLVED
+            return False,None,None
 
         # build patched application
 
@@ -513,8 +517,13 @@ class JavaDD(DD, object):
                 except Exception as e:
                     logger.warning('%s' % e)
 
-            return DD.UNRESOLVED
+            return False,None,None
+        
+        return True, dest_dir,uid
 
+        
+    def _test(self,c:list,dest_dir,uid,keep_variant=False):
+       
         # test application
 
         logger.info('testing %s...' % uid)
@@ -1055,7 +1064,7 @@ def run(algo, proj_id, working_dir, conf=None, src_dir=None, vers=None,
 
         staging = Staging(algo, jdd, staged=staged)
 
-        jdd._test(c, uid=add_vp_suffix('maximal', vp), keep_variant=False)
+        # jdd._test(c, uid=add_vp_suffix('maximal', vp), keep_variant=False)
 
         r = jdd.staged_dd(c, staging)
 

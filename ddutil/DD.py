@@ -44,6 +44,12 @@
 
 import logging
 import numpy as np
+from typing import List
+import random
+import math
+from numpy import ndarray
+from networkx import DiGraph
+from tabulate import tabulate
 
 
 logger = logging.getLogger()
@@ -227,6 +233,8 @@ class DD:
     PASS       = "FAIL"
     FAIL       = "PASS"
     UNRESOLVED = "UNRESOLVED"
+    CE = "CE"
+    GREEDY = 0.1
 
 
     # Resolving directions.
@@ -250,6 +258,7 @@ class DD:
         self.minimize = 1
         self.maximize = 1
         self.assume_axioms_hold = 1
+        self.ce_his = set()
 
 
     # Helpers
@@ -339,7 +348,7 @@ class DD:
 
 
     # Testing
-    def test(self, c):
+    def test(self, c,dest_dir,uid):
         """Test the configuration C.  Return PASS, FAIL, or UNRESOLVED"""
         c.sort(key=str)
 
@@ -365,8 +374,7 @@ class DD:
         if self.debug_test:
             logger.debug("test({})...".format(self.coerce(c)))
 
-
-        outcome = self._test(c)
+        outcome = self._test(c,dest_dir,uid)
 
 
         if self.debug_test:
@@ -380,11 +388,14 @@ class DD:
         return outcome
 
 
-    def _test(self, c):
+    def _test(self,dest_dir,uid,keep_variant):
         """Stub to overload in subclasses"""
         return self.UNRESOLVED      # Placeholder
-
-
+    
+    def _build(self,c,uid=None, ignore_ref=False, keep_variant=False, ce_set:set ={}):
+        """Stub to overload in subclasses"""
+        return False,None,None     # Placeholder
+ 
 
     # Splitting
     def split(self, c, n):
@@ -511,157 +522,6 @@ class DD:
 
 
 
-    # Delta Debugging (old ESEC/FSE version)
-    def old_dd(self, c, r = [], n = 2):
-        """Return the failure-inducing subset of C"""
-
-
-        assert self.test([]) == DD.PASS
-        assert self.test(c)  == DD.FAIL
-
-
-        if self.debug_dd:
-            logger.debug("dd({}, {}, {})...".format(self.pretty(c), repr(r), repr(n)))
-
-
-        outcome = self._old_dd(c, r, n)
-
-
-        if self.debug_dd:
-            logger.debug("dd({}, {}, {}) = {}".format(self.pretty(c), repr(r), repr(n), repr(outcome)))
-
-
-        return outcome
-
-
-    def _old_dd(self, c, r, n):
-        """Stub to overload in subclasses"""
-
-
-        if r == []:
-            assert self.test([]) == self.PASS
-            assert self.test(c)  == self.FAIL
-        else:
-            assert self.test(r)     != self.FAIL
-            assert self.test(c + r) != self.PASS
-
-
-        assert self.__listintersect(c, r) == []
-
-
-        if len(c) == 1:
-            # Nothing to split
-            return c
-
-
-        run = 1
-        next_c = c[:]
-        next_r = r[:]
-
-
-        # We replace the tail recursion from the paper by a loop
-        while 1:
-            self.report_progress(c, "dd")
-
-
-            cs = self.split(c, n)
-
-
-            self.show_status(run, cs, n)
-
-
-            # Check subsets
-            ts = []
-            for i in range(n):
-                if self.debug_dd:
-                    logger.info("dd: trying cs[{}] = {}".format(repr(i), self.pretty(cs[i])))
-
-
-                t, cs[i] = self.test_and_resolve(cs[i], r, c, self.REMOVE)
-                ts.append(t)
-                if t == self.FAIL:
-                    # Found
-                    if self.debug_dd:
-                        logger.debug("dd: found {} deltas:".format(len(cs[i])))
-                        logger.debug(self.pretty(cs[i]))
-                    return self.old_dd(cs[i], r)
-
-
-            # Check complements
-            cbars = []
-            tbars = []
-
-
-            for i in range(n):
-                cbar = self.__listminus(c, cs[i] + r)
-                tbar, cbar = self.test_and_resolve(cbar, r, c, self.ADD)
-
-
-
-                doubled =  self.__listintersect(cbar, cs[i])
-                if doubled != []:
-                    cs[i] = self.__listminus(cs[i], doubled)
-
-
-
-                cbars.append(cbar)
-                tbars.append(tbar)
-
-
-                if ts[i] == self.PASS and tbars[i] == self.PASS:
-                    # Interference
-                    if self.debug_dd:
-                        logger.debug("dd: interference of {}".format(self.pretty(cs[i])))
-                        logger.debug("and {}".format(self.pretty(cbars[i])))
-                        
-                    d    = self.old_dd(cs[i][:], cbars[i] + r)
-                    dbar = self.old_dd(cbars[i][:], cs[i] + r)
-                    return d + dbar
-
-
-                if ts[i] == self.UNRESOLVED and tbars[i] == self.PASS:
-                    # Preference
-                    if self.debug_dd:
-                        logger.debug("dd: preferring {} deltas:".format(len(cs[i])))
-                        logger.debug(self.pretty(cs[i]))
-                        
-                    return self.old_dd(cs[i][:], cbars[i] + r)
-
-
-                if ts[i] == self.PASS or tbars[i] == self.FAIL:
-                    if self.debug_dd:
-                        excluded = self.__listminus(next_c, cbars[i])
-                        logger.debug("dd: excluding {} deltas:".format(len(excluded)))
-                        logger.debug(self.pretty(excluded))
-
-
-                    if ts[i] == self.PASS:
-                        next_r = self.__listunion(next_r, cs[i])
-                    next_c = self.__listintersect(next_c, cbars[i])
-                    self.report_progress(next_c, "dd")
-
-
-            next_n = min(len(next_c), n * 2)
-
-
-            if next_n == n and next_c[:] == c[:] and next_r[:] == r[:]:
-                # Nothing left
-                if self.debug_dd:
-                    logger.debug("dd: nothing left")
-                return next_c
-
-
-            # Try again
-            if self.debug_dd:
-                logger.debug("dd: try again")
-
-
-            c = next_c
-            r = next_r
-            n = next_n
-            run = run + 1
-
-
 
     def test_mix(self, csub, c, direction):
         if self.minimize:
@@ -713,9 +573,11 @@ class DD:
 
         if self.debug_dd:
             logger.debug("dd({}, {})...".format(self.pretty(c), repr(n)))
-
-
-        outcome = self._prodd(c)
+            
+        matrix = 0.1 * np.ones((len(c), len(c)))
+        # 将对角线元素设置为0
+        np.fill_diagonal(matrix, 0)
+        outcome = self.reldd(c,matrix=matrix)
 
 
         if self.debug_dd:
@@ -725,42 +587,39 @@ class DD:
         return outcome
 
 
-    
-    def getIdx2test(self,inp1, inp2):
+    def getIdx2test(self, inp1, inp2):
         res = []
         for elm in inp1:
-            if not(elm in inp2):
+            if not (elm in inp2):
                 res.append(elm)
         return res
 
-
-    def computRatio(self,deleteconfig, p) -> float:
+    def computRatio(self, deleteconfig, p) -> float:
         res = 0
-        tmplog = 1
+        tmplog = 0.0
         for delc in deleteconfig:
-            if p[delc] > 0 and p[delc] < 1:
-                tmplog *= (1 - p[delc])
+            if 0 < p[delc] < 1:
+                tmplog += math.log(1 - p[delc])
+        tmplog = math.exp(tmplog)
         res = 1 / (1 - tmplog)
         return res
 
-
-    
-    def sample(self,p):
+    def sample(self, p):
         delset = []
-        idx = np.argsort(p) # sort by probabilities and return index
+        idx = np.argsort(p)  # sort by probabilities and return index
         k = 0
         tmp = 1
         last = -99999
         idxlist = list(idx)
         i = 0
         while i < len(p):
-            if p[idxlist[i]] == 0 :
+            if p[idxlist[i]] == 0:
                 k = k + 1
                 i = i + 1
                 continue
-            if not p[idxlist[i]] < 1 :
+            if not p[idxlist[i]] < 1:
                 break
-            for j in range(k,i+1):
+            for j in range(k, i + 1):
                 tmp *= (1 - p[idxlist[j]])
             tmp *= (i - k + 1)
             if tmp < last:
@@ -773,40 +632,182 @@ class DD:
             delset.append(idxlist[i])
         return delset
 
-
-    def testDone(self,p):
+    def testDone(self, p):
         for prob in p:
-            if abs(prob-1.0)>1e-6 and min(prob,1)<1.0:
+            if abs(prob - 1.0) > 1e-6 and min(prob, 1) < 1.0:
                 return False
         return True
 
-
-    def _prodd(self,c):
-        print("Use ProbDD")
-        assert self.test([]) == self.PASS #check wether F meet T
-        retseq = c
-        retIdx = range(0,len(c))
+    def reldd(self, c, matrix: ndarray):
+        print("Use RelDD")
+        # assert self.test([]) == self.PASS #check wether F meet T
+        retIdx = c[:]
         p = []
-        for idx in range(0,len(c)): # initialize the probability for each element in the input sequence
+        his = set()
+        hisCE = {}
+        for idx in range(0, len(c)):  # initialize the probability for each element in the input sequence
             p.append(0.1)
+        last_p = []
+        cc = 0
         while not self.testDone(p):
+            last_p = p[:]
             delIdx = self.sample(p)
             if len(delIdx) == 0:
                 break
-            idx2test = self.getIdx2test(retIdx,delIdx) 
-            if self.test(idx2test) == self.FAIL: # set probabilities of the deleted elements to 0
-                for set0 in range(0,len(p)):
+            idx2test = self.getIdx2test(retIdx, delIdx)
+            self.resolve_dependency(idx2test, matrix=matrix, cpro=p)
+            delIdx = self.getIdx2test(retIdx, idx2test)
+            iscompile, dest_dir, uid = self._build(idx2test, ce_set=hisCE)
+            if not iscompile:
+                iscompile, n_testIdx, dest_dir, uid = self.predict_vaild_Idx(idx2test=idx2test, delIdx=delIdx,
+                                                                             retIdx=retIdx, matrix=matrix, cpro=p,
+                                                                             histotal=hisCE)
+                idx2test = n_testIdx
+            if not iscompile:
+                break
+            self.resolve_dependency(idx2test, matrix=matrix, cpro=p)
+            delIdx = self.getIdx2test(retIdx, idx2test)
+
+            if len(idx2test) < len(retIdx):
+                cesubsets = self.getCESubsets(idx2test, cemap=hisCE)
+                max_item=[]
+                for item in cesubsets:
+                    self.updateMatrix(item, self.getIdx2test(idx2test, item), matrix)
+
+            res = self.FAIL
+            his.add(self.get_list_str(idx2test))
+            if self.test(idx2test, dest_dir, uid) == self.FAIL:  # set probabilities of the deleted elements to 0
+                for set0 in range(0, len(p)):
                     if set0 not in idx2test:
                         p[set0] = 0
+                        for index in range(0, len(matrix)):
+                            matrix[index][set0] = 0.0
+                            matrix[set0][index] = 0.0
                 retIdx = idx2test
-            else: #test(seq2test, *test_args) == PASS:
-                for setd in range(0,len(p)):
-                    if setd in delIdx and p[setd] != 0 and p[setd] != 1:
-                        delta = (self.computRatio(delIdx,p) - 1) * p[setd]
-                        p[setd] = p[setd] + delta
-        return retseq
+            else:  # test(seq2test, *test_args) == PASS:
+                res = self.PASS
+                p_cp = p[:]
+                for setd in range(0, len(p)):
+                    if setd in delIdx and 0 < p[setd] < 1:
+                        delta = (self.computRatio(delIdx, p_cp) - 1) * p_cp[setd]
+                        p[setd] = p_cp[setd] + delta
+                for i in range(0, len(p)):
+                    if i in idx2test:
+                        for j in range(0, len(p)):
+                            if j not in idx2test:
+                                matrix[i][j] = 0.0
+            if set(last_p) == set(p):
+                cc += 1
+            if cc > 10:
+                break
+            print('{}:{}'.format(idx2test, res))
+            print(p)
+            print(tabulate(matrix, tablefmt="fancy_grid", showindex=True, headers=list(range(len(p)))))
+        print("{}->{}->{}".format(len(his), len(hisCE), retIdx))
+        return retIdx
 
 
+    def updateMatrix(self, testIdx: list, delIdx: list, matrix: ndarray):
+
+        tmplog = 0.00
+        for itemt in testIdx:
+            for itemd in delIdx:
+                if 0 < matrix[itemt][itemd] < 1:
+                    tmplog += math.log(1.0 - matrix[itemt][itemd])
+        if tmplog == 0:
+            return
+        tmplog = math.pow(math.e, tmplog)
+        print("update {}->{}".format(testIdx,delIdx))
+        for itemt in testIdx:
+            for itemd in delIdx:
+                if matrix[itemt][itemd] != 0:
+                    matrix[itemt][itemd] = min(matrix[itemt][itemd] / (1.0 - tmplog), 1.0)
+                    if matrix[itemt][itemd] >= 0.99:
+                        matrix[itemt][itemd] = 1.0
+
+    def getCESubsets(self, testset: list, cemap: dict):
+        res = []
+        teststr = self.get_list_str(testset)
+        for key, value in cemap.items():
+            if key in teststr:
+                res.append(value)
+        return res
+
+    def predict_vaild_Idx(self, idx2test, delIdx, retIdx, matrix: ndarray, cpro: list, histotal: dict):
+        # 从delIdx中选择idx2test的依赖
+        his = set()
+        is_compile = False
+        i = 0
+        dk = len(delIdx)
+        tk = len(idx2test)
+        ck = dk + tk
+        back2test = idx2test[:]
+        n_testIdx = idx2test[:]
+        while not is_compile:
+            print('{}:CE,hisCE size :{}'.format(n_testIdx, len(histotal)))
+            stt = self.get_list_str(n_testIdx)
+            print(stt)
+            histotal[stt] = n_testIdx
+            if stt not in his:
+                i += 1
+                his.add(stt)
+            p = random.random()
+            if (dk > 0 and i <= dk * math.log(dk)) or p > self.GREEDY:
+                n_testIdx = self.add_dependency_Idx(back2test, delIdx, matrix)
+            else:
+                n_testIdx = self.remove_test_Idx(idx2test, cpro=cpro)
+                back2test = n_testIdx
+            if len(n_testIdx) == 0:
+                random.sample(retIdx, k=random.randint(1, len(retIdx)))
+                back2test = n_testIdx
+            if i > math.pow(2, tk) + math.pow(2, ck):
+                break
+            is_compile, dtest_dir, uid = self._build(n_testIdx, ce_set=histotal)
+        if len(idx2test) == 0:
+            n_testIdx = random.sample(retIdx, k=random.randint(1, len(retIdx)))
+        return is_compile, n_testIdx, dtest_dir, uid
+
+    def get_list_str(self, t: list):
+        if len(t) == 0:
+            return ''
+        t.sort()
+        return ''.join(str(i) for i in t)
+
+    def add_dependency_Idx(self, idx2test, delIdx, matrix: ndarray):
+        result = idx2test[:]
+        dpro_dict = {}
+        matrix = np.array(matrix)
+        for item in delIdx:
+            dpro_dict[item] = np.nanmean(matrix[:, item])
+        for key, value in dpro_dict.items():
+            if random.random() < value:
+                result.append(key)
+        return list(set(result))
+
+    def remove_test_Idx(self, idx2test, cpro: list):
+        prolist = []
+        if len(idx2test) == 1:
+            return []
+        for item in idx2test:
+            prolist.append(cpro[item])
+        k = random.randint(1, len(idx2test) - 1)
+        idx2test = list(set(idx2test))
+
+        lst_sum = sum(prolist)
+        # 使用列表推导式将每个元素除以列表总和，得到归一化后的列表
+        normalized_lst = [x / lst_sum for x in prolist]
+        return np.random.choice(idx2test, replace=False, p=normalized_lst, size=k).tolist()
+
+    def resolve_dependency(self, idx2test: list, matrix, cpro: list):
+        cp = idx2test[:]
+        for item in cp:
+            for i in range(0, len(cpro)):
+                if matrix[item][i] == 1:
+                    print("have a confirm relation {}->{}".format(item, i))
+                    if i not in idx2test:
+                        idx2test.append(i)
+                    cpro[i] = cpro[item]
+        
     def _dd(self, c, n):
         """Stub to overload in subclasses"""
 

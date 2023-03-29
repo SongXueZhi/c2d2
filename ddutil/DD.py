@@ -230,7 +230,7 @@ class DD:
 
 
     # Test outcomes.
-    PASS       = "FAIL"
+    PASS       = "FAL"
     FAIL       = "PASS"
     UNRESOLVED = "UNRESOLVED"
     CE = "CE"
@@ -561,31 +561,27 @@ class DD:
     # Delta Debugging (new ISSTA version)
     def ddgen(self, c, minimize, maximize):
         """Return a 1-minimal failing subset of C"""
-
-
         self.minimize = minimize
         self.maximize = maximize
-
 
         n = 2
         self.CC = c
 
-
         if self.debug_dd:
             logger.debug("dd({}, {})...".format(self.pretty(c), repr(n)))
-            
-        matrix = 0.1 * np.ones((len(c), len(c)))
-        # 将对角线元素设置为0
-        np.fill_diagonal(matrix, 0)
+        matrix = self._get_dep_matrix()
+        
+        print(tabulate(matrix, tablefmt="fancy_grid", showindex=True, headers=list(range(len(c)))))    
         outcome = self.reldd(c,matrix=matrix)
-
 
         if self.debug_dd:
             logger.debug("dd({}, {}) = {}".format(self.pretty(c), repr(n), repr(outcome)))
 
 
         return outcome
-
+    
+    def _get_dep_matrix(self):
+        return None
 
     def getIdx2test(self, inp1, inp2):
         res = []
@@ -658,6 +654,7 @@ class DD:
             self.resolve_dependency(idx2test, matrix=matrix, cpro=p)
             delIdx = self.getIdx2test(retIdx, idx2test)
             iscompile, dest_dir, uid = self._build(idx2test, ce_set=hisCE)
+            iscompile, dest_dir, uid = self._build(idx2test, ce_set=hisCE)
             if not iscompile:
                 iscompile, n_testIdx, dest_dir, uid = self.predict_vaild_Idx(idx2test=idx2test, delIdx=delIdx,
                                                                              retIdx=retIdx, matrix=matrix, cpro=p,
@@ -708,7 +705,6 @@ class DD:
 
 
     def updateMatrix(self, testIdx: list, delIdx: list, matrix: ndarray):
-
         tmplog = 0.00
         for itemt in testIdx:
             for itemd in delIdx:

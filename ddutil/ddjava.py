@@ -25,6 +25,7 @@ import os
 from uuid import uuid4
 import shutil
 import json
+from numpy import ndarray
 from ortools.algorithms import pywrapknapsack_solver as knap
 import logging
 
@@ -292,7 +293,7 @@ class JavaDD(DD, object):
     def set_original_dir(self, ver):
         self._original_dir = os.path.join(self._src_dir, ver)
 
-    def get_delta_tbl(self, use_ref=True, use_other=True, shuffle=0, optout=False):
+    def get_delta_tbl(self, use_ref=True, use_other=True, shuffle=0, optout=True):
         self._decomp.decompose(use_ref=use_ref, use_other=use_other, staged=self._staged,
                                shuffle=shuffle, optout=optout)
         self._decomp.show_compo_ids_tbl()#!!!
@@ -565,7 +566,9 @@ class JavaDD(DD, object):
 
         return result
 
-
+    def _get_dep_matrix(self):
+        return self._decomp.get_dep_matrix(self._vp)
+    
     def do_ddmin(self, c, stage=1, prefix=''):
         c_min = c
         if len(c) > 1:
@@ -581,13 +584,13 @@ class JavaDD(DD, object):
 
         suffix = str(stage)
 
-        min_res = self._test(c_min,
-                             uid=add_vp_suffix(prefix+'minimal'+suffix, self._vp),
-                             keep_variant=True)
+        # min_res = self._test(c_min,
+        #                      uid=add_vp_suffix(prefix+'minimal'+suffix, self._vp),
+        #                      keep_variant=True)
 
         r = DDResult(algo=A_DDMIN)
         r.inp = c
-        r.minimal_result = min_res
+        r.minimal_result = c_min
         r.cids_minimal = c_min
 
         return r
@@ -618,30 +621,30 @@ class JavaDD(DD, object):
 
         suffix = str(stage)
 
-        c_min_ = None
+        # c_min_ = None
 
-        if c_min:
-            min_uid = add_vp_suffix(prefix+'minimal'+suffix, self._vp)
-            c_min_ = self.add_dependency(self.ungroup(c_min))
-            min_res = self._test(c_min_, uid=min_uid, keep_variant=True)
-            if min_res != DD.FAIL:
-                print('trying to add group dependencies...')
-                c_min_ = self.add_dependency_g(c_min)
-                min_res = self._test(c_min_, uid=min_uid, keep_variant=True)
+        # if c_min:
+        #     min_uid = add_vp_suffix(prefix+'minimal'+suffix, self._vp)
+        #     c_min_ = self.add_dependency(self.ungroup(c_min))
+        #     min_res = self._test(c_min_, uid=min_uid, keep_variant=True)
+        #     if min_res != DD.FAIL:
+        #         print('trying to add group dependencies...')
+        #         c_min_ = self.add_dependency_g(c_min)
+        #         min_res = self._test(c_min_, uid=min_uid, keep_variant=True)
 
-        if c_pass:
-            pass_res = self._test(c_pass,
-                                  uid=add_vp_suffix(prefix+'pass'+suffix, self._vp),
-                                  keep_variant=True)
-        if c_fail:
-            fail_res = self._test(c_fail,
-                                  uid=add_vp_suffix(prefix+'fail'+suffix, self._vp),
-                                  keep_variant=True)
+        # if c_pass:
+        #     pass_res = self._test(c_pass,
+        #                           uid=add_vp_suffix(prefix+'pass'+suffix, self._vp),
+        #                           keep_variant=True)
+        # if c_fail:
+        #     fail_res = self._test(c_fail,
+        #                           uid=add_vp_suffix(prefix+'fail'+suffix, self._vp),
+        #                           keep_variant=True)
 
         r = DDResult(algo=A_DD)
         r.inp = c
         r.minimal_result = min_res
-        r.cids_minimal = c_min_
+        r.cids_minimal = c_min
         r.pass_result = pass_res
         r.cids_pass = c_pass
         r.fail_result = fail_res
@@ -1012,7 +1015,7 @@ def run(algo, proj_id, working_dir, conf=None, src_dir=None, vers=None,
         noref=False,
         nochg=False,
         shuffle=False,
-        optout=False,
+        optout=True,
         max_stmt_level=MAX_STMT_LEVEL,
         modified_stmt_rate_thresh=MODIFIED_STMT_RATE_THRESH,
         custom_split=False,

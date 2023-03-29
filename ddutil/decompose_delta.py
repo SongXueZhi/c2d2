@@ -29,6 +29,8 @@ import copy
 import random
 import logging
 
+import numpy as np
+
 from conf import CCA_SCRIPTS_DIR, VIRTUOSO_PW, VIRTUOSO_PORT, FACTUTILS_DIR
 
 sys.path.append(CCA_SCRIPTS_DIR)
@@ -38179,9 +38181,8 @@ class Decomposer(object):
         return id_list
 
 
-    def decompose(self, use_syn=True, use_ref=True, use_other=True, outfile=None, staged=False,
-                  shuffle=0, optout=False):
-
+    def decompose(self, use_syn=True, use_ref=True, use_other=True, outfile="graph.xml", staged=False,
+                  shuffle=0, optout=True):
         qtbl = dict([(n, eval(self.make_query_id(n))) for n in QUERY_TBL.get(self._lang, [])])
         for n in QUERY_LIST:
             qtbl[n] = eval(make_query_id(n))
@@ -39697,7 +39698,7 @@ class Decomposer(object):
 
             if outfile:
                 g.save(add_vp_suffix(outfile, vp))
-
+            
         for (mhunk, (dhunk, ihunk)) in self._move_tbl.items():
             self._del_tbl[dhunk] = mhunk
             self._ins_tbl[ihunk] = mhunk
@@ -39747,7 +39748,18 @@ class Decomposer(object):
                                       ','.join([self.id_to_string(vp, x) for x in id_list])))
 
         return id_list
-
+    
+    def get_dep_matrix(self,vp):
+        matrix = 0.1 * np.ones((len(self._vp_compo_tbl[vp]), len(self._vp_compo_tbl[vp])))
+        # 将对角线元素设置为0
+        np.fill_diagonal(matrix, 0)
+        cid_dep_tbl = self._vp_cid_dep_tbl.get(vp, {})
+        for _cids,cidts in cid_dep_tbl.items():
+          for cid in _cids:
+            for cit in cidts:
+              matrix[cid][cit] =1
+        return matrix      
+    
     def regroup_by_file(self, vp, _cids, by_dep=False):
         return self.regroup(self._vp_file_group_tbl, self._vp_rev_file_group_tbl,
                             vp, _cids, by_dep=by_dep)
@@ -40052,7 +40064,7 @@ class Decomposer(object):
 
         compo_diff = sorted(list(set(compo_ids) - r))
         if len(compo_diff) > 0:
-            raise DependencyCheckFailedException(compo_diff)
+            raise DependencyCheckFailedException(compo_diff) 
 
         total_compo_ids = sorted(compo_ids)
         # logger.info('total components (%d): %s' % (len(total_compo_ids),

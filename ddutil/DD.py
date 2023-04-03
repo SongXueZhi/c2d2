@@ -209,8 +209,8 @@ class DD:
     # purposes.
 
     # Test outcomes.
-    PASS = "FAIL"
-    FAIL = "PASS"
+    PASS = "PASS"
+    FAIL = "FAIL"
     UNRESOLVED = "UNRESOLVED"
 
     # Resolving directions.

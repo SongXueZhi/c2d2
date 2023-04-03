@@ -1091,73 +1091,73 @@ def run(algo, proj_id, working_dir, conf=None, src_dir=None, vers=None,
 
         set_status('delta decomposed into {}({}) components'.format(len(c), len(c_ungrouped)))
 
-        staging = Staging(algo, jdd, staged=staged)
+        # staging = Staging(algo, jdd, staged=staged)
 
-        jdd._test(c, uid=add_vp_suffix('maximal', vp), keep_variant=False)
+        # jdd._test(c, uid=add_vp_suffix('maximal', vp), keep_variant=False)
 
-        r = jdd.staged_dd(c, staging)
+        # r = jdd.staged_dd(c, staging)
 
-        if greedy:
-            c = c_ungrouped
-            count = 0
-            while True:
-                prev_ini = list(c)
-                prev_min = list(r.cids_minimal)
-                prev_ini_len = len(prev_ini)
-                prev_min_len = len(prev_min)
-                print('previous initial (%d): %s' % (prev_ini_len, prev_ini))
-                print('previous minimal (%d): %s' % (prev_min_len, prev_min))
+        # if greedy:
+        #     c = c_ungrouped
+        #     count = 0
+        #     while True:
+        #         prev_ini = list(c)
+        #         prev_min = list(r.cids_minimal)
+        #         prev_ini_len = len(prev_ini)
+        #         prev_min_len = len(prev_min)
+        #         print('previous initial (%d): %s' % (prev_ini_len, prev_ini))
+        #         print('previous minimal (%d): %s' % (prev_min_len, prev_min))
 
-                c0 = set(c)
-                c0 -= set(prev_min)
-                cl0 = sorted(list(c0))
+        #         c0 = set(c)
+        #         c0 -= set(prev_min)
+        #         cl0 = sorted(list(c0))
 
-                count += 1
-                prefix = 'a%d-' % count
-                uid = add_vp_suffix('{}complement'.format(prefix), vp)
+        #         count += 1
+        #         prefix = 'a%d-' % count
+        #         uid = add_vp_suffix('{}complement'.format(prefix), vp)
 
-                c = jdd.remove_dependency(cl0)
-                if c:
-                    x = jdd._test(c, uid=uid, keep_variant=True)
-                    if x == DD.FAIL:
-                        print('[%d] finding another...' % count)
-                        jdd.reset_dd()
-                        jdd.reset_counters()
-                        jdd.clear_base_cids()
-                        jdd.set_vp(vp)
-                        jdd.set_original_dir(ver)
+        #         c = jdd.remove_dependency(cl0)
+        #         if c:
+        #             x = jdd._test(c, uid=uid, keep_variant=True)
+        #             if x == DD.FAIL:
+        #                 print('[%d] finding another...' % count)
+        #                 jdd.reset_dd()
+        #                 jdd.reset_counters()
+        #                 jdd.clear_base_cids()
+        #                 jdd.set_vp(vp)
+        #                 jdd.set_original_dir(ver)
 
-                        staging = Staging(algo, jdd, staged=staged)
+        #                 staging = Staging(algo, jdd, staged=staged)
 
-                        if staged:
-                            c = jdd.regroup_by_file(c, by_dep=True)
+        #                 if staged:
+        #                     c = jdd.regroup_by_file(c, by_dep=True)
 
-                        r = jdd.staged_dd(c, staging, prefix=prefix)
+        #                 r = jdd.staged_dd(c, staging, prefix=prefix)
 
-                        continue
+        #                 continue
 
-                c = jdd.add_dependency(cl0)
-                print('checking if %d < |c|=%d < %d' % (len(cl0), len(c), prev_ini_len))
-                if c and len(cl0) < len(c) < prev_ini_len:
-                    x = jdd._test(c, uid=uid, keep_variant=True)
-                    if x == DD.FAIL:
-                        print('[%d] finding another...' % count)
-                        jdd.reset_dd()
-                        jdd.reset_counters()
-                        jdd.clear_base_cids()
-                        jdd.set_vp(vp)
-                        jdd.set_original_dir(ver)
+        #         c = jdd.add_dependency(cl0)
+        #         print('checking if %d < |c|=%d < %d' % (len(cl0), len(c), prev_ini_len))
+        #         if c and len(cl0) < len(c) < prev_ini_len:
+        #             x = jdd._test(c, uid=uid, keep_variant=True)
+        #             if x == DD.FAIL:
+        #                 print('[%d] finding another...' % count)
+        #                 jdd.reset_dd()
+        #                 jdd.reset_counters()
+        #                 jdd.clear_base_cids()
+        #                 jdd.set_vp(vp)
+        #                 jdd.set_original_dir(ver)
 
-                        staging = Staging(algo, jdd, staged=staged)
+        #                 staging = Staging(algo, jdd, staged=staged)
 
-                        if staged:
-                            c = jdd.regroup_by_file(c, by_dep=True)
+        #                 if staged:
+        #                     c = jdd.regroup_by_file(c, by_dep=True)
 
-                        r = jdd.staged_dd(c, staging, prefix=prefix)
+        #                 r = jdd.staged_dd(c, staging, prefix=prefix)
 
-                        continue
+        #                 continue
 
-                break
+        #         break
     return ok
 
 

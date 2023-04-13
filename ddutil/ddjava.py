@@ -20,6 +20,7 @@
 
 __author__ = 'Masatomo Hashimoto <m.hashimoto@stair.center>'
 
+from typing import Tuple
 import sys
 import os
 from uuid import uuid4
@@ -28,20 +29,23 @@ import json
 from numpy import ndarray
 from ortools.algorithms import pywrapknapsack_solver as knap
 import logging
-
+from error_parser import Error_Parser
 from conf import CCA_SCRIPTS_DIR, VIRTUOSO_PW, VIRTUOSO_PORT
-from decompose_delta import Decomposer, add_vp_suffix, vp_to_str, set_tbl_add, getnum, isgid
+from decompose_delta import K_DEL, K_INS, K_REL, Decomposer, Hunk, add_vp_suffix, vp_to_str, set_tbl_add, getnum, isgid
 from decompose_delta import DependencyCheckFailedException
 from decompose_delta import MAX_STMT_LEVEL, MODIFIED_STMT_RATE_THRESH
 from DD import DD
+import javalang
 
 sys.path.append(CCA_SCRIPTS_DIR)
 
 import proc
+import subprocess
 from siteconf import PROJECTS_DIR
 from sparql import get_localname
 from patchast import patchast
 from common import setup_logger, DEFAULT_LOGGING_LEVEL
+import re
 
 logger = logging.getLogger()
 
@@ -59,6 +63,16 @@ TEST_SCRIPT  = 'test'
 A_DD    = 'dd'
 A_DDMIN = 'ddmin'
 
+class HunkCode(object):
+    def __init__(self,hunk,code_0,code_1) -> None:
+        self.hunk = hunk
+        self.code_0 = code_0
+        self.code_1 = code_1
+        
+class BuildResult(object):
+    def __init__(self,err_set,rcids) -> None:
+        self.err_set = err_set
+        self.rcids = rcids
 
 
 class DDResult(object):
@@ -158,6 +172,8 @@ class JavaDD(DD, object):
         self._prev_progress = {DD.FAIL:(0, 0, 0),DD.PASS:(0, 0, 0)}
 
         self._custom_split = custom_split
+        self.err_parser = Error_Parser()
+        self.hunks_token_tbl ={}
 
     def show_status(self, run, cs, n):
         mes = 'dd (run #{}): trying {}'.format(run, '+'.join([str(len(cs[i])) for i in range(n)]))
@@ -253,6 +269,62 @@ class JavaDD(DD, object):
 
     def has_grp(self, xs):
         return len(list(filter(isgid, xs))) > 0
+    
+    def set_tokens2hunks(self,cids):
+        for idx in cids:
+            self.hunks_token_tbl[idx] =set()
+            hunks = self._decomp.get_compo_hunks(self._vp, idx)
+            for hunk in hunks:
+                self.hunks_token_tbl[idx].update(self.parse_hunk_to_tokens(hunk))      
+        print(self.hunks_token_tbl)
+        
+    def parse_hunk_to_tokens(self,hunk:Hunk):
+        result=set()
+        rt = hunk.root
+        kd = hunk.get_kind()
+        lines_old_num = rt.el-rt.sl
+        lines_new_num = rt.el_-rt.sl_
+        if(kd == K_INS):
+            result.update(self.parse_hunk_from_old(hunk))
+        elif(kd == K_DEL):
+            result.update(self.parse_hunk_from_new(hunk))
+        elif(kd == K_REL):
+            result.update(self.parse_hunk_from_old(hunk)) 
+            result.update(self.parse_hunk_from_new(hunk))
+        else:
+            result.update(self.parse_hunk_from_new(hunk))
+        return result             
+    
+    def parse_hunk_from_old(self,hunk):
+        rt = hunk.root
+        #read token in work
+        file_name2 =os.path.join(self._src_dir,get_localname(self._vp[1]),hunk.get_loc_())
+        with open(file_name2,'r') as file2:
+            content2 = file2.read()
+    
+        # Get the tokens in the specified range
+        start_pos1 = javalang.tokenizer.Position(rt.sl_, rt.sc_)
+        end_pos1 = javalang.tokenizer.Position(rt.el_, rt.ec_)
+        print(f'{rt.sl_}:{rt.sc_}-{rt.el_}:{rt.ec_} {file_name2}')
+        hunk_content2 = javalang.tokenizer.tokenize(content2)
+        tokens2_in_range = [t.value for t in hunk_content2 if start_pos1 <= t.position < end_pos1 and type(t) == javalang.tokenizer.Identifier]
+        return tokens2_in_range
+    
+    def parse_hunk_from_new(self,hunk):
+        rt = hunk.root
+        #read token in bic 
+        file_name1 = os.path.join(self._src_dir,get_localname(self._vp[0]),hunk.get_loc())  
+        with open(file_name1,'r') as file1:
+            content1 = file1.read()
+        # Get the tokens in the specified range
+        start_pos = javalang.tokenizer.Position(rt.sl, rt.sc)
+        end_pos = javalang.tokenizer.Position(rt.el, rt.ec)
+        
+        print(f'{rt.sl}:{rt.sc}-{rt.el}:{rt.ec} {file_name1}')
+        
+        hunk_content1 = javalang.tokenizer.tokenize(content1)
+        tokens1_in_range = [t.value for t in hunk_content1 if start_pos <= t.position < end_pos and t.value.isalpha() and type(t) == javalang.tokenizer.Identifier ]  
+        return tokens1_in_range  
 
     def show_hunks(self, xs):
         cids = self.ungroup(xs)
@@ -302,15 +374,24 @@ class JavaDD(DD, object):
     def get_optout_compo_ids(self, vp):
         return self._decomp.get_optout_compo_ids(vp)
 
+            
     def do_build(self, path):
-        if self._build_script == None:
-            if os.path.exists(os.path.join(path, self._build_script_name)):
-                return proc.system('./'+self._build_script_name, cwd=path)
+        try:
+            if self._build_script == None:
+                if os.path.exists(os.path.join(path, self._build_script_name)):
+                    result = subprocess.run(['./'+self._build_script_name],cwd=path,capture_output=True, text=True, check=True)
             else:
-                return 0
-        else:
-            cmd = '%s %s' % (self._build_script, path)
-            return proc.system(cmd)
+                result = subprocess.run([self._build_script],cwd=path, capture_output=True, text=True, check=True)
+            return 0,None    
+        except subprocess.CalledProcessError as e:
+            output = e.output
+            print("Compilation failed.")
+            return 1,output
+    
+    def error_to_hunk(self,VO_list):
+        for item in VO_list:
+            print()
+            
 
     def do_test (self, path):
         if self._test_script == None:
@@ -424,10 +505,7 @@ class JavaDD(DD, object):
         logger.info('components (%d): %s' % (n, cids))
         return n
     
-    def _build(self,c, uid=None, ignore_ref=False, keep_variant=False, ce_set:set ={}):
-        
-        if self.get_list_str(c) in ce_set:
-            return False, None,None
+    def _build(self,c, uid=None, ignore_ref=False, keep_variant=False):
         
         if uid == None:
             uid = str(uuid4())
@@ -450,7 +528,7 @@ class JavaDD(DD, object):
                                     ignore_ref=ignore_ref)
         except DependencyCheckFailedException as e:
             logger.warning('there are unmet dependencies: %s' % e)
-            return False, None, None
+            # return False, None, None
 
         # prepare patched source
 
@@ -493,7 +571,7 @@ class JavaDD(DD, object):
                 except Exception as e:
                     logger.warning('%s' % e)
 
-            return False,None,None
+            return False,None,None,None
 
         # build patched application
 
@@ -501,8 +579,8 @@ class JavaDD(DD, object):
 
         self._build_count += 1
         self._global_build_count += 1
-
-        if self.do_build(dest_dir) != 0:
+        build_result,err_message  = self.do_build(dest_dir)
+        if build_result != 0:
             if not self._keep_going:
                 exit(1)
 
@@ -510,19 +588,61 @@ class JavaDD(DD, object):
             self._global_build_failure_count += 1
 
             logger.warning('BUILD FAILURE: %s' % uid)
-
+            build_info = self._parse_err_message(err_message=err_message)
+            print(err_message)
+            print(build_info)
             if not keep_variant:
                 try:
                     logger.info('removing %s...' % dest_dir)
                     shutil.rmtree(dest_dir)
                 except Exception as e:
                     logger.warning('%s' % e)
-
-            return False,None,None
+            
+            return False,None,None,build_info
         
-        return True, dest_dir,uid
+        return True, dest_dir,uid,None
 
-        
+    def _parse_err_message(self,err_message:str):
+        err_list=self.err_parser.parse_errors(output=err_message)
+        err_file_tbl = self.get_err_file_dict(err_list)
+        contents = set()
+        result=[]
+        err_set =set()
+        for key,value in err_file_tbl.items():
+            if key  is not None:
+                with open(key,'r') as file1:
+                    content_lines = file1.readlines()
+                for item in value:
+                    content =None
+                    if item[0] is not None and isinstance(item[0]  , int) and item[1]  is not None and isinstance(item[1] , int):
+                        content_line = content_lines[item[0]-1]
+                        tokens = javalang.tokenizer.tokenize(content_line)
+                        content = next((t for t in tokens if t.position.column == item[1]), None)                              
+                    else:
+                        file_name = os.path.basename(key)  # 获取文件名，包括扩展名
+                        content = os.path.splitext(file_name)[0]  # 去除扩展名，提取类名
+                    contents.add(content)
+        print(err_list)            
+        for (v,o) in err_list:
+            if o['name'] is not None:
+                contents.add(o['name'].split('(')[0].strip())
+            elif o['loc'] is not None:
+                contents.add(o['loc'].split('.')[-1])
+            err_set.add(f"{v['loc']}_{v['line']}_{v['column']}")
+        for cid, tokens in self.hunks_token_tbl.items():
+            if tokens.intersection(contents):
+                result.append(cid)
+        print((list(set(result)),err_set))       
+        return BuildResult(err_set,list(set(result)))
+                
+    def get_err_file_dict(self, err_list):
+        err_file_tbl={}
+        for (v,o) in err_list:
+            if v['loc'] not in err_file_tbl:
+                err_file_tbl[v['loc']]=list()
+            err_file_tbl[v['loc']].append((v['line'],v['column']))                
+        return err_file_tbl      
+           
     def _test(self,c:list,dest_dir,uid,keep_variant=False):
        
         # test application
@@ -1133,7 +1253,7 @@ def run(algo, proj_id, working_dir, conf=None, src_dir=None, vers=None,
 
                 break
     return ok
-
+ 
 def main():
 
     from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter

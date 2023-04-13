@@ -44,12 +44,16 @@
 
 import logging
 import numpy as np
-from typing import List
+from typing import List, Tuple
 import random
 import math
 from numpy import ndarray
 from networkx import DiGraph
 from tabulate import tabulate
+
+from collections import deque
+from typing import List
+
 
 
 logger = logging.getLogger()
@@ -247,7 +251,9 @@ class DD:
     debug_dd        = 0
     debug_split     = 0
     debug_resolve   = 0
-
+    ERR_GAIN =1
+    Matirx_GAIN = 0    
+    CE_DICT={}
 
     def __init__(self):
         self.__resolving = 0
@@ -392,9 +398,9 @@ class DD:
         """Stub to overload in subclasses"""
         return self.UNRESOLVED      # Placeholder
     
-    def _build(self,c,uid=None, ignore_ref=False, keep_variant=False, ce_set:set ={}):
+    def _build(self,c,uid=None, ignore_ref=False, keep_variant=False):
         """Stub to overload in subclasses"""
-        return False,None,None     # Placeholder
+        return False,None,None,None    # Placeholder
  
 
     # Splitting
@@ -571,6 +577,8 @@ class DD:
             logger.debug("dd({}, {})...".format(self.pretty(c), repr(n)))
         matrix = self._get_dep_matrix()
         
+        self.set_tokens2hunks(cids=c)
+        
         print(tabulate(matrix, tablefmt="fancy_grid", showindex=True, headers=list(range(len(c)))))    
         outcome = self.reldd(c,matrix=matrix)
 
@@ -645,24 +653,22 @@ class DD:
             p.append(0.1)
         last_p = []
         cc = 0
+        last_ce_log = None
         while not self.testDone(p):
             last_p = p[:]
             delIdx = self.sample(p)
             if len(delIdx) == 0:
                 break
             idx2test = self.getIdx2test(retIdx, delIdx)
-            self.resolve_dependency(idx2test, matrix=matrix, cpro=p)
+            idx2test = self.resolve_dependency(idx2test, retIdx, matrix=matrix, cpro=p)
             delIdx = self.getIdx2test(retIdx, idx2test)
-            iscompile, dest_dir, uid = self._build(idx2test, ce_set=hisCE)
-            iscompile, dest_dir, uid = self._build(idx2test, ce_set=hisCE)
-            if not iscompile:
-                iscompile, n_testIdx, dest_dir, uid = self.predict_vaild_Idx(idx2test=idx2test, delIdx=delIdx,
+            iscompile, dest_dir, uid,build_result = self._build(idx2test, ce_set=hisCE)
+            if not iscompile:                
+                iscompile, n_testIdx, dest_dir, uid = self.predict_vaild_Idx(idx2test=idx2test,
                                                                              retIdx=retIdx, matrix=matrix, cpro=p,
-                                                                             histotal=hisCE)
+                                                                             histotal=hisCE, build_info=build_result)
                 idx2test = n_testIdx
-            if not iscompile:
-                break
-            self.resolve_dependency(idx2test, matrix=matrix, cpro=p)
+            self.resolve_dependency(idx2test, retIdx, matrix=matrix, cpro=p)
             delIdx = self.getIdx2test(retIdx, idx2test)
 
             if len(idx2test) < len(retIdx):
@@ -677,9 +683,7 @@ class DD:
                 for set0 in range(0, len(p)):
                     if set0 not in idx2test:
                         p[set0] = 0
-                        for index in range(0, len(matrix)):
-                            matrix[index][set0] = 0.0
-                            matrix[set0][index] = 0.0
+ 
                 retIdx = idx2test
             else:  # test(seq2test, *test_args) == PASS:
                 res = self.PASS
@@ -702,8 +706,13 @@ class DD:
             print(tabulate(matrix, tablefmt="fancy_grid", showindex=True, headers=list(range(len(p)))))
         print("{}->{}->{}".format(len(his), len(hisCE), retIdx))
         return retIdx
-
-
+    
+    def _get_hunks_from_err(self,err_message:str,c):
+        return None
+    
+    def set_tokens2hunks(self,cids):
+        return None
+    
     def updateMatrix(self, testIdx: list, delIdx: list, matrix: ndarray):
         tmplog = 0.00
         for itemt in testIdx:
@@ -726,84 +735,323 @@ class DD:
         teststr = self.get_list_str(testset)
         for key, value in cemap.items():
             if key in teststr:
-                res.append(value)
+                res.append(value[0])
         return res
-
-    def predict_vaild_Idx(self, idx2test, delIdx, retIdx, matrix: ndarray, cpro: list, histotal: dict):
-        # 从delIdx中选择idx2test的依赖
-        his = set()
-        is_compile = False
-        i = 0
-        dk = len(delIdx)
-        tk = len(idx2test)
-        ck = dk + tk
-        back2test = idx2test[:]
-        n_testIdx = idx2test[:]
-        while not is_compile:
-            print('{}:CE,hisCE size :{}'.format(n_testIdx, len(histotal)))
-            stt = self.get_list_str(n_testIdx)
-            print(stt)
-            histotal[stt] = n_testIdx
-            if stt not in his:
-                i += 1
-                his.add(stt)
-            p = random.random()
-            if (dk > 0 and i <= dk * math.log(dk)) or p > self.GREEDY:
-                n_testIdx = self.add_dependency_Idx(back2test, delIdx, matrix)
-            else:
-                n_testIdx = self.remove_test_Idx(idx2test, cpro=cpro)
-                back2test = n_testIdx
-            if len(n_testIdx) == 0:
-                random.sample(retIdx, k=random.randint(1, len(retIdx)))
-                back2test = n_testIdx
-            if i > math.pow(2, tk) + math.pow(2, ck):
+    
+    def predict_vaild_Idx(self, idx2test, retIdx, matrix: ndarray, cpro: list, histotal: dict,build_info):
+        subset =None
+        if self.ERR_GAIN == 1:
+            matrix_score = self.check_matrix_score(matrix);
+            # 首先根据log来快速降维关系
+            subset = self.gen_subset_by_err(matrix,idx2test[:],retIdx,build_info)
+            if self.check_matrix_score(matrix) == matrix: #无增益，说明log的操作无效
+                self.ERR_GAIN =0
+        if subset == None:
+        #如果增益为0， 则之后使用权重算法
+            subset = self.gen_subset_by_matrix()
+        return  subset 
+    
+    def check_matrix_score(self,matrix):
+        num_zeros = np.count_nonzero(matrix == 0)
+        return num_zeros
+    
+    def check_compile(self,n_testIdx,last_testIdx,last_buildInfo,retIdx,matrix):
+        err_key = self.get_list_str(n_testIdx)        
+        if err_key in self.CE_DICT:
+            return False, None,None,self.CE_DICT[self.get_list_str(n_testIdx)][1]
+        
+        is_compile, dtest_dir, uid,build_info = self._build(n_testIdx)
+        self.CE_DICT[err_key] =(n_testIdx,build_info)
+        #根据编译结果根新概率矩阵
+        if (not is_compile) and build_info:
+            if len(build_info.err_set) < len(last_buildInfo):
+                #更新概率
+                if(n_testIdx < last_testIdx):
+                    self.updateMatrix(n_testIdx,self.getIdx2test(last_testIdx,n_testIdx))
+                elif(n_testIdx > last_testIdx):  
+                    self.updateMatrix(last_testIdx,self.getIdx2test(n_testIdx,last_testIdx))
+        elif not is_compile:
+            self.updateMatrix(n_testIdx,self.getIdx2test(retIdx,n_testIdx))
+                         
+        if compile: # testIdx 和 delIdx之间的关系被解除
+            for item in n_testIdx:
+                for itemj in self.getIdx2test(retIdx,n_testIdx):
+                    matrix[item][itemj] = 0
+                               
+        return  is_compile, dtest_dir, uid,build_info          
+                       
+    def gen_subset_by_err(self,matrix,testIdx,retIdx,build_info):
+        #这个时候我们希望compile error占主导
+        #1. 首先尝试添加元素
+        last_testIdx = testIdx[:]
+        last_buildInfo = build_info[:]
+        n_buildInfo = build_info[:]
+        while not is_compile: 
+            n_testIdx = list(set(last_testIdx) |set(n_buildInfo.rcids))
+            if len(n_testIdx) == len(last_testIdx) or  len(n_testIdx) == len(retIdx): #不在能获取新的ADD,或者全集了结束
                 break
-            is_compile, dtest_dir, uid = self._build(n_testIdx, ce_set=histotal)
-        if len(idx2test) == 0:
-            n_testIdx = random.sample(retIdx, k=random.randint(1, len(retIdx)))
-        return is_compile, n_testIdx, dtest_dir, uid
+            is_compile, dtest_dir, uid,last_buildInfo = self.check_compile(n_testIdx, last_testIdx,last_buildInfo,retIdx,matrix)            
+            last_testIdx = n_testIdx
+            if is_compile:
+                return  n_testIdx      
+       
+        #2. 尝试删除元素
+        last_testIdx = testIdx[:]
+        last_buildInfo = build_info[:]
+        n_buildInfo = build_info[:]
+        while not is_compile:
+            n_testIdx = list(set(last_testIdx)-set(n_buildInfo.rcids))
+            if len(n_testIdx) == len(last_testIdx) or  len(n_testIdx) == len(retIdx) or len(n_testIdx) == 0: #不在能获取新的ADD,或者全集了结束
+                break
+            is_compile, dtest_dir, uid,last_buildInfo = self.check_compile(n_testIdx, last_testIdx,last_buildInfo,retIdx)            
+            last_testIdx = n_testIdx
+            if is_compile:
+                return  n_testIdx   
+        return None
+    
+    
+    def gen_subset_by_matrix(self,matrix,testIdx,retIdx,build_info):
+        #首先尝试添加元素
+        last_buildInfo = build_info[:]
+        his=set()
+        delIdx = self.getIdx2test(retIdx,testIdx)
+        while not is_compile:
+            if len(his)>3000 or len(his)>2**len(delIdx):
+                break
+            n_testIdx = self.gen_ADDset_from_matrix(matrix,testIdx,retIdx,last_buildInfo.rcids)
+            stt = self.get_list_str(n_testIdx)
+            if stt not in his:
+                his.add(stt)
+            else:
+                continue    
+            if len(n_testIdx) == len(retIdx):
+                break
+            is_compile, dtest_dir, uid,last_buildInfo = self.check_compile(n_testIdx, testIdx,last_buildInfo,retIdx)
+            if is_compile:
+                return  n_testIdx
+                 
+        last_buildInfo = build_info[:]
+        his=set()
+        while not is_compile:    
+            if len(his)>3000 or len(his)>2**len(testIdx):
+                break
+            n_testIdx = self.gen_DELset_from_matrix(matrix,testIdx,last_buildInfo.rcids)
+            if stt not in his:
+                his.add(stt)
+            else:
+                continue    
+            if len(n_testIdx) == len(retIdx) or len(n_testIdx) == 0:
+                break
+            if is_compile:
+                return  n_testIdx      
+        return None
+    
+    def gen_DELset_from_matrix(self,matrix,testIdx,err_cids):
+        #权重算法，根据matrix中的依赖概率和err信息共同选择
+        #1. 首先计算testIdx对外部元素的依赖程度
+        #权重计算方式为matrix中testId一行的最大值
+        test_del_weights =  [np.max(matrix[row,:]) for row in testIdx]
+        #2. 将err提供的相关元素来融合权重 
+        #融合方式为 wi+(1-wi)/2 *xi 其中xi=1表示err中的元素
+        test_del_weights = [w+(1-w)/2 if w in err_cids else w for w in testIdx]
+        
+        #3.根据融合的概率权重进行随机选择
+        del_idx =[]
+        while len(del_idx) == 0:
+            del_idx = self.weight_select(test_del_weights,testIdx)
 
+        return list(set(testIdx) - set(del_idx))
+        
+    def gen_ADDset_from_matrix(self,matrix,testIdx,retIdx,err_cids):
+        delIdx = self.getIdx2test(retIdx,testIdx)
+        #权重算法，根据matrix中的依赖概率和err信息共同选择
+        #1. 首先计算 delIdx中的每一个元素在matrix被依赖的权重
+        #权重的计算方法为matrix中delId的一列的最大值
+        del_add_weights = [np.max(matrix[:,column]) for column in delIdx]
+
+        #2. 将err提供的相关元素来融合权重 
+        #融合方式为 wj+(1-wj)/2 *xi 其中xi=1表示err中的元素
+        del_add_weights = [w+(1-w)/2 if w in err_cids else w for w in del_add_weights]
+        # 这里不对del_weights 进行归一化，原因是，每一个delIdx中元素被依赖的概率是独立的。不需要delIdx中的权重概率和是1
+
+        #3.根据融合的概率权重进行随机选择
+        add_idx =[]
+        while len(add_idx) == 0:
+            add_idx = self.weight_select(del_add_weights,delIdx)
+
+        return list(set(testIdx) | set(add_idx))   
+
+    def accept_reject_sampling(probs):
+        samples = []
+        max_prob = max(probs) # 找到概率列表中的最大概率，作为上界
+        if all(prob > 0.9 for prob in probs):
+        # 如果所有概率都大于0.9，则将它们更新为0.5
+            probs = [0.5] * len(probs)
+        for item in probs:
+            # 生成候选样本
+            u = np.random.rand()
+            if u < item / max_prob:
+                # 接受样本
+                samples.append(item)
+        return np.array(samples)
+       
+    def weight_select(self,weights,delIdx):
+        result=[]
+        th = np.random.rand()
+        for index in range(len(weights)):
+            if weights[index] == 0:
+                continue            
+            u = np.random.rand()
+            if u < weights[index]:
+                result.append(delIdx[index])
+        return result
+     
+    def get_del_by_random(self,weights,testIdx,cids):
+        result=[]
+        max_prob = max(weights)
+        th = np.random.rand()
+        for index in range(len(weights)):
+            if testIdx[index] in cids:
+                w = weights[index]
+                weights[index] = w +(1-w)/2
+                u = np.random.rand()
+                if u < weights[index] / max_prob:
+                    result.append(testIdx[index])
+        print(f"random del{result}")
+        return result         
+        
+    def get_dep_by_union(self,weights,delIdx,add_dep_from_log):
+
+        result=[]    
+        for index in range(len(weights)):
+            if weights[index] == 0 and weights[index] in add_dep_from_log:
+                add_dep_from_log.remove(weights[index])
+        result =[delIdx[index] for index in self.sample(weights)]       
+        return list((set(delIdx)-set(result)) | set(add_dep_from_log))
+                    
     def get_list_str(self, t: list):
         if len(t) == 0:
             return ''
         t.sort()
-        return ''.join(str(i) for i in t)
-
-    def add_dependency_Idx(self, idx2test, delIdx, matrix: ndarray):
+        return ''.join(str(i)+'+' for i in t)       
+        
+    def add_dependency_Idx(self, idx2test, retIdx, matrix: ndarray,cpro,cids):
+        delIdx = self.getIdx2test(retIdx,idx2test)
+        add_dep_from_log = list((set(cids) - set(idx2test)) & set(delIdx))
+        print(f"log{add_dep_from_log}")
+        #计算matrix 里每一个需要添加的元素的权重
+        del_weights = [self.weighted_mean_column(matrix,wlist) for wlist in delIdx]
+        #根据get_dep作选择    
+        n_testIdx = list(set(idx2test) |set(self.get_dep_by_union(add_dep_from_log=add_dep_from_log,delIdx=delIdx,weights=del_weights)))
+        n_testIdx = self.resolve_dependency(idx2test=n_testIdx,retIdx=retIdx,matrix=matrix,cpro=cpro)
+        return n_testIdx
+    def add_dependency_Idx_back(self, idx2test, delIdx, matrix: ndarray):
         result = idx2test[:]
-        dpro_dict = {}
-        matrix = np.array(matrix)
-        for item in delIdx:
-            dpro_dict[item] = np.nanmean(matrix[:, item])
-        for key, value in dpro_dict.items():
-            if random.random() < value:
-                result.append(key)
-        return list(set(result))
-
-    def remove_test_Idx(self, idx2test, cpro: list):
+        tmp =[]
+        for item in idx2test:
+            del_depidx = self.sample(matrix[item,:].tolist())
+            tmp = list(set(tmp) |set(del_depidx) )
+        tmp = list(set(delIdx)-set(tmp))   
+        result.extend(tmp)
+        return result
+    
+    def remove_test_Idx(self, idx2test, matrix,retIdx,cpro,cids):
+        n_testIdx = self.remove_testidx_by_ce_message(idx2test,cids)
+        if(len(n_testIdx) == len(idx2test)):
+            n_testIdx = self.remove_test_Idx_by_matrix(idx2test,matrix=matrix,cids=cids)
+        n_testIdx = self.resolve_dependency(idx2test=n_testIdx,retIdx=retIdx,matrix=matrix,cpro=cpro)
+        return n_testIdx
+        
+    def remove_test_Idx_by_matrix(self, idx2test, matrix, cids):
+        idx2test = list(set(idx2test))
         prolist = []
         if len(idx2test) == 1:
             return []
         for item in idx2test:
-            prolist.append(cpro[item])
-        k = random.randint(1, len(idx2test) - 1)
-        idx2test = list(set(idx2test))
-
-        lst_sum = sum(prolist)
-        # 使用列表推导式将每个元素除以列表总和，得到归一化后的列表
-        normalized_lst = [x / lst_sum for x in prolist]
-        return np.random.choice(idx2test, replace=False, p=normalized_lst, size=k).tolist()
-
-    def resolve_dependency(self, idx2test: list, matrix, cpro: list):
-        cp = idx2test[:]
-        for item in cp:
-            for i in range(0, len(cpro)):
-                if matrix[item][i] == 1:
-                    print("have a confirm relation {}->{}".format(item, i))
-                    if i not in idx2test:
-                        idx2test.append(i)
-                    cpro[i] = cpro[item]
+            prolist.append(self.weighted_mean_row(matrix,row_idx=item))        
+        result =[idx2test[index] for index in self.sample(prolist)]
+        return list(set(result)-set(cids));
+    
+    def weighted_mean_column(self,matrix, column_idx):
+         # 获取指定列的数据
+        colunm = matrix[:, column_idx]
+        # 找到非零元素的索引，并获取其对应的值
+        nonzero_indices = np.nonzero(colunm)[0]
+        values = colunm[nonzero_indices]
+        # 计算非零元素的加权平均值
+        sum_values= np.sum(values)
+        count = len(nonzero_indices)
+        if count == 0:
+            return 0
+        else:
+            return sum_values / count
         
+    def weighted_mean_row(self,matrix, row_idx):
+        row = matrix[row_idx, :]
+        nonzero_indices = np.nonzero(row)[0]
+        values = row[nonzero_indices]
+        # squares = np.square(values)
+        sum_squares = np.sum(values)
+        count = len(nonzero_indices)
+        if count == 0:
+            return 0
+        else:
+            return sum_squares / count
+    
+    def add_dep_by_ce_message(self,idx2test: list, cids: list):
+        return list(set(idx2test)|set(cids))
+    
+    def remove_testidx_by_ce_message(self,idx2test: list, cids: list):
+        return list(set(idx2test)-set(cids))    
+    
+    def conditional_entropy_gain(self,last_score,matrix):
+        num_zeros = np.count_nonzero(matrix == 0)
+        num_ones = np.count_nonzero(matrix == 1)
+        score = (num_zeros + num_ones) / matrix.size
+        return last_score -score, score
+        
+    def resolve_dependency(self, idx2test: list, retIdx: list, matrix, cpro: list):
+        cp = idx2test[:]
+        #ADD
+        while True:
+            old_result =cp[:]
+            for item in cp:
+                for i in range(0, len(cpro)):
+                    if matrix[item][i] == 1:
+                        if i not in cp:
+                            cp.append(i)
+                        cpro[i] = cpro[item]
+            cp = list(set(cp))            
+            for item in cp:
+                for i in range(0, len(cpro)):
+                    if matrix[item][i] == 1:
+                        if i not in cp:
+                            cp.append(i)
+                        cpro[i] = cpro[item]
+            cp = list(set(cp))             
+            if len(set(cp)) == len(set(old_result)):
+                break                       
+        #Remove                        
+        if len(set(cp)) == len(set(retIdx)):
+            while True:
+                old_result =cp[:]
+                for item in cp:
+                    for i in range(0, len(cpro)):
+                        if matrix[item][i] == 1:
+                            if i not in idx2test:
+                                cp.remove(item)
+                cp = list(set(cp))            
+                for item in cp:
+                    for i in range(0, len(cpro)):
+                        if matrix[item][i] == 1:
+                            if i not in idx2test:
+                                cp.remove(item)
+                cp = list(set(cp))                                            
+                if len(set(cp)) == len(set(old_result)):
+                    break             
+         
+        return list(cp)
+    
     def _dd(self, c, n):
         """Stub to overload in subclasses"""
 

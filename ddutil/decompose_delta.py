@@ -39759,7 +39759,7 @@ class Decomposer(object):
             for cit in cidts:
               matrix[cid][cit] =1
         return matrix      
-    
+      
     def regroup_by_file(self, vp, _cids, by_dep=False):
         return self.regroup(self._vp_file_group_tbl, self._vp_rev_file_group_tbl,
                             vp, _cids, by_dep=by_dep)
@@ -39788,7 +39788,6 @@ class Decomposer(object):
                 print('[{}]'.format(cid))
                 for hunk in hunks:
                     print(' {}'.format(hunk))
-
 
     def get_compo_ids(self, vp):
         return list(self._vp_compo_tbl[vp].keys())

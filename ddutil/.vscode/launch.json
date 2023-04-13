@@ -11,7 +11,8 @@
             "program": "${file}",
             "console": "integratedTerminal", 
             "justMyCode": true,
-            "args": ["/var/lib/project","28_ric","28_work","--build-script","build.sh","--test-script","test.sh","--include","src/main/java","-a","ddmin","-d","--max-stmt-level","8","--modified-stmt-rate-thresh","0.05","--mem","8"]
+            // "args": ["/var/lib/project","33_ric","33_work","--build-script","build.sh","--test-script","test.sh","--include","src/main/java","-a","ddmin","-d","--max-stmt-level","8","--modified-stmt-rate-thresh","0.05","--mem","8"]
+            "args": ["/var/lib/project","33_ric","33_work","--build-script","build.sh","--test-script","test.sh","--include","src/main/java","-a","ddmin","-d","--max-stmt-level","8","--modified-stmt-rate-thresh","0.05","--mem","8","--noresolve","--noref","--nochg"]
         }
     ]
 }

@@ -53,6 +53,7 @@ from tabulate import tabulate
 
 from collections import deque
 from typing import List
+import copy
 
 
 
@@ -654,36 +655,39 @@ class DD:
         last_p = []
         cc = 0
         last_ce_log = None
+        i =0
+        iscompile = True
         while not self.testDone(p):
             last_p = p[:]
             delIdx = self.sample(p)
             if len(delIdx) == 0:
                 break
             idx2test = self.getIdx2test(retIdx, delIdx)
+            if  not iscompile:
+                weights = [p[item] for item in idx2test]
+                idx2test = self.weight_select(weights,idx2test)
+                
             idx2test = self.resolve_dependency(idx2test, retIdx, matrix=matrix, cpro=p)
             delIdx = self.getIdx2test(retIdx, idx2test)
-            iscompile, dest_dir, uid,build_result = self._build(idx2test, ce_set=hisCE)
+            iscompile, dest_dir, uid,build_result = self._build(idx2test)
             if not iscompile:                
                 iscompile, n_testIdx, dest_dir, uid = self.predict_vaild_Idx(idx2test=idx2test,
                                                                              retIdx=retIdx, matrix=matrix, cpro=p,
                                                                              histotal=hisCE, build_info=build_result)
-                idx2test = n_testIdx
-            self.resolve_dependency(idx2test, retIdx, matrix=matrix, cpro=p)
-            delIdx = self.getIdx2test(retIdx, idx2test)
-
-            if len(idx2test) < len(retIdx):
-                cesubsets = self.getCESubsets(idx2test, cemap=hisCE)
-                max_item=[]
-                for item in cesubsets:
-                    self.updateMatrix(item, self.getIdx2test(idx2test, item), matrix)
+            if not iscompile:
+                i+=1
+                if i < 1000 or i<2**len(retIdx):
+                    continue
 
             res = self.FAIL
             his.add(self.get_list_str(idx2test))
             if self.test(idx2test, dest_dir, uid) == self.FAIL:  # set probabilities of the deleted elements to 0
                 for set0 in range(0, len(p)):
-                    if set0 not in idx2test:
+                     if set0 not in idx2test:
                         p[set0] = 0
- 
+                        for index in range(0, len(matrix)):
+                            matrix[index][set0] = 0.0
+                            matrix[set0][index] = 0.0
                 retIdx = idx2test
             else:  # test(seq2test, *test_args) == PASS:
                 res = self.PASS
@@ -692,11 +696,6 @@ class DD:
                     if setd in delIdx and 0 < p[setd] < 1:
                         delta = (self.computRatio(delIdx, p_cp) - 1) * p_cp[setd]
                         p[setd] = p_cp[setd] + delta
-                for i in range(0, len(p)):
-                    if i in idx2test:
-                        for j in range(0, len(p)):
-                            if j not in idx2test:
-                                matrix[i][j] = 0.0
             if set(last_p) == set(p):
                 cc += 1
             if cc > 10:
@@ -739,17 +738,17 @@ class DD:
         return res
     
     def predict_vaild_Idx(self, idx2test, retIdx, matrix: ndarray, cpro: list, histotal: dict,build_info):
-        subset =None
+        is_compile =False
         if self.ERR_GAIN == 1:
             matrix_score = self.check_matrix_score(matrix);
             # 首先根据log来快速降维关系
-            subset = self.gen_subset_by_err(matrix,idx2test[:],retIdx,build_info)
-            if self.check_matrix_score(matrix) == matrix: #无增益，说明log的操作无效
+            is_compile,n_testIdx,dtest_dir, uid = self.gen_subset_by_err(matrix,idx2test[:],retIdx,build_info)
+            if self.check_matrix_score(matrix) == matrix_score: #无增益，说明log的操作无效
                 self.ERR_GAIN =0
-        if subset == None:
+        if not is_compile:
         #如果增益为0， 则之后使用权重算法
-            subset = self.gen_subset_by_matrix()
-        return  subset 
+            is_compile,n_testIdx,dtest_dir, uid = self.gen_subset_by_matrix(matrix,idx2test[:],retIdx,build_info)  
+        return  is_compile,n_testIdx,dtest_dir, uid 
     
     def check_matrix_score(self,matrix):
         num_zeros = np.count_nonzero(matrix == 0)
@@ -761,19 +760,20 @@ class DD:
             return False, None,None,self.CE_DICT[self.get_list_str(n_testIdx)][1]
         
         is_compile, dtest_dir, uid,build_info = self._build(n_testIdx)
-        self.CE_DICT[err_key] =(n_testIdx,build_info)
+        if not is_compile:
+            self.CE_DICT[err_key] =(n_testIdx,build_info)
         #根据编译结果根新概率矩阵
         if (not is_compile) and build_info:
-            if len(build_info.err_set) < len(last_buildInfo):
+            if build_info and len(build_info.err_set) < len(last_buildInfo.err_set):
                 #更新概率
                 if(n_testIdx < last_testIdx):
-                    self.updateMatrix(n_testIdx,self.getIdx2test(last_testIdx,n_testIdx))
+                    self.updateMatrix(n_testIdx,self.getIdx2test(last_testIdx,n_testIdx),matrix)
                 elif(n_testIdx > last_testIdx):  
-                    self.updateMatrix(last_testIdx,self.getIdx2test(n_testIdx,last_testIdx))
-        elif not is_compile:
-            self.updateMatrix(n_testIdx,self.getIdx2test(retIdx,n_testIdx))
+                    self.updateMatrix(last_testIdx,self.getIdx2test(n_testIdx,last_testIdx),matrix)
+            else:
+                self.updateMatrix(n_testIdx,self.getIdx2test(retIdx,n_testIdx),matrix)
                          
-        if compile: # testIdx 和 delIdx之间的关系被解除
+        if is_compile: # testIdx 和 delIdx之间的关系被解除
             for item in n_testIdx:
                 for itemj in self.getIdx2test(retIdx,n_testIdx):
                     matrix[item][itemj] = 0
@@ -783,68 +783,71 @@ class DD:
     def gen_subset_by_err(self,matrix,testIdx,retIdx,build_info):
         #这个时候我们希望compile error占主导
         #1. 首先尝试添加元素
+        is_compile =False
         last_testIdx = testIdx[:]
-        last_buildInfo = build_info[:]
-        n_buildInfo = build_info[:]
+        last_buildInfo = copy.deepcopy(build_info)
         while not is_compile: 
-            n_testIdx = list(set(last_testIdx) |set(n_buildInfo.rcids))
+            n_testIdx = list(set(last_testIdx) |set(last_buildInfo.rcids))
             if len(n_testIdx) == len(last_testIdx) or  len(n_testIdx) == len(retIdx): #不在能获取新的ADD,或者全集了结束
                 break
             is_compile, dtest_dir, uid,last_buildInfo = self.check_compile(n_testIdx, last_testIdx,last_buildInfo,retIdx,matrix)            
             last_testIdx = n_testIdx
             if is_compile:
-                return  n_testIdx      
+                return  is_compile,n_testIdx,dtest_dir, uid       
        
         #2. 尝试删除元素
         last_testIdx = testIdx[:]
-        last_buildInfo = build_info[:]
-        n_buildInfo = build_info[:]
+        last_buildInfo = copy.deepcopy(build_info)
         while not is_compile:
-            n_testIdx = list(set(last_testIdx)-set(n_buildInfo.rcids))
+            n_testIdx = list(set(last_testIdx)-set(last_buildInfo.rcids))
             if len(n_testIdx) == len(last_testIdx) or  len(n_testIdx) == len(retIdx) or len(n_testIdx) == 0: #不在能获取新的ADD,或者全集了结束
                 break
-            is_compile, dtest_dir, uid,last_buildInfo = self.check_compile(n_testIdx, last_testIdx,last_buildInfo,retIdx)            
+            is_compile, dtest_dir, uid,last_buildInfo = self.check_compile(n_testIdx, last_testIdx,last_buildInfo,retIdx,matrix)            
             last_testIdx = n_testIdx
             if is_compile:
-                return  n_testIdx   
-        return None
+                return  is_compile,n_testIdx,dtest_dir, uid   
+        return False,None,None,None
     
     
     def gen_subset_by_matrix(self,matrix,testIdx,retIdx,build_info):
+        is_compile =False
         #首先尝试添加元素
-        last_buildInfo = build_info[:]
+        last_buildInfo = copy.deepcopy(build_info)
         his=set()
         delIdx = self.getIdx2test(retIdx,testIdx)
         while not is_compile:
             if len(his)>3000 or len(his)>2**len(delIdx):
                 break
             n_testIdx = self.gen_ADDset_from_matrix(matrix,testIdx,retIdx,last_buildInfo.rcids)
+            if n_testIdx == None:
+                break
             stt = self.get_list_str(n_testIdx)
-            if stt not in his:
+            if stt not in self.CE_DICT:
                 his.add(stt)
             else:
                 continue    
             if len(n_testIdx) == len(retIdx):
                 break
-            is_compile, dtest_dir, uid,last_buildInfo = self.check_compile(n_testIdx, testIdx,last_buildInfo,retIdx)
+            is_compile, dtest_dir, uid,last_buildInfo = self.check_compile(n_testIdx, testIdx,last_buildInfo,retIdx,matrix)
             if is_compile:
-                return  n_testIdx
+                return  is_compile,n_testIdx,dtest_dir, uid
                  
-        last_buildInfo = build_info[:]
+        last_buildInfo = copy.deepcopy(build_info)
         his=set()
         while not is_compile:    
             if len(his)>3000 or len(his)>2**len(testIdx):
                 break
             n_testIdx = self.gen_DELset_from_matrix(matrix,testIdx,last_buildInfo.rcids)
-            if stt not in his:
+            if stt not in self.CE_DICT:
                 his.add(stt)
             else:
                 continue    
             if len(n_testIdx) == len(retIdx) or len(n_testIdx) == 0:
                 break
+            is_compile, dtest_dir, uid,last_buildInfo = self.check_compile(n_testIdx, testIdx,last_buildInfo,retIdx,matrix)
             if is_compile:
-                return  n_testIdx      
-        return None
+                return  is_compile,n_testIdx,dtest_dir, uid     
+        return False,None,None,None
     
     def gen_DELset_from_matrix(self,matrix,testIdx,err_cids):
         #权重算法，根据matrix中的依赖概率和err信息共同选择
@@ -876,24 +879,13 @@ class DD:
 
         #3.根据融合的概率权重进行随机选择
         add_idx =[]
+        if all(item == 0 for item in del_add_weights):
+            return None
+
         while len(add_idx) == 0:
             add_idx = self.weight_select(del_add_weights,delIdx)
 
         return list(set(testIdx) | set(add_idx))   
-
-    def accept_reject_sampling(probs):
-        samples = []
-        max_prob = max(probs) # 找到概率列表中的最大概率，作为上界
-        if all(prob > 0.9 for prob in probs):
-        # 如果所有概率都大于0.9，则将它们更新为0.5
-            probs = [0.5] * len(probs)
-        for item in probs:
-            # 生成候选样本
-            u = np.random.rand()
-            if u < item / max_prob:
-                # 接受样本
-                samples.append(item)
-        return np.array(samples)
        
     def weight_select(self,weights,delIdx):
         result=[]

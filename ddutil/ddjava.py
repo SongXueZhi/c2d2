@@ -589,8 +589,6 @@ class JavaDD(DD, object):
 
             logger.warning('BUILD FAILURE: %s' % uid)
             build_info = self._parse_err_message(err_message=err_message)
-            print(err_message)
-            print(build_info)
             if not keep_variant:
                 try:
                     logger.info('removing %s...' % dest_dir)
@@ -621,8 +619,7 @@ class JavaDD(DD, object):
                     else:
                         file_name = os.path.basename(key)  # 获取文件名，包括扩展名
                         content = os.path.splitext(file_name)[0]  # 去除扩展名，提取类名
-                    contents.add(content)
-        print(err_list)            
+                    contents.add(content)           
         for (v,o) in err_list:
             if o['name'] is not None:
                 contents.add(o['name'].split('(')[0].strip())
@@ -631,8 +628,7 @@ class JavaDD(DD, object):
             err_set.add(f"{v['loc']}_{v['line']}_{v['column']}")
         for cid, tokens in self.hunks_token_tbl.items():
             if tokens.intersection(contents):
-                result.append(cid)
-        print((list(set(result)),err_set))       
+                result.append(cid)  
         return BuildResult(err_set,list(set(result)))
                 
     def get_err_file_dict(self, err_list):
@@ -644,9 +640,15 @@ class JavaDD(DD, object):
         return err_file_tbl      
            
     def _test(self,c:list,dest_dir,uid,keep_variant=False):
-       
+        is_compile =True
+        if uid == None or dest_dir == None:
+            is_compile = False
+            is_compile, dest_dir, uid, build_info = self._build(c)
         # test application
-
+        
+        if not is_compile:
+            return DD.UNRESOLVED
+            
         logger.info('testing %s...' % uid)
 
         result = self.do_test(dest_dir)

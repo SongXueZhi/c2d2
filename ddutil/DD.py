@@ -367,11 +367,11 @@ class DD:
                 return cached_result
 
 
-        if self.monotony:
-            # Check whether we had a passing superset of this test before
-            cached_result = self.outcome_cache.lookup_superset(c)
-            if cached_result == self.PASS:
-                return self.PASS
+        # if self.monotony:
+        #     # Check whether we had a passing superset of this test before
+        #     cached_result = self.outcome_cache.lookup_superset(c)
+        #     if cached_result == self.PASS:
+        #         return self.PASS
             
             cached_result = self.outcome_cache.lookup_subset(c)
             if cached_result == self.FAIL:
@@ -654,7 +654,6 @@ class DD:
             p.append(0.1)
         last_p = []
         cc = 0
-        last_ce_log = None
         i =0
         iscompile = True
         while not self.testDone(p):
@@ -669,19 +668,23 @@ class DD:
                 
             idx2test = self.resolve_dependency(idx2test, retIdx, matrix=matrix, cpro=p)
             delIdx = self.getIdx2test(retIdx, idx2test)
-            iscompile, dest_dir, uid,build_result = self._build(idx2test)
+            iscompile, dest_dir, uid,build_result = self.check_compile(idx2test,None,None,retIdx,matrix)
             if not iscompile:                
                 iscompile, n_testIdx, dest_dir, uid = self.predict_vaild_Idx(idx2test=idx2test,
                                                                              retIdx=retIdx, matrix=matrix, cpro=p,
                                                                              histotal=hisCE, build_info=build_result)
-            if not iscompile:
-                i+=1
-                if i < 1000 or i<2**len(retIdx):
-                    continue
-
-            res = self.FAIL
+                if not iscompile:
+                    i+=1
+                    if i < 100 or i<2**len(retIdx):
+                        continue
+                    else:
+                        dest_dir =None
+                        uid = None
+                else:
+                    idx2test = n_testIdx        
+            res = self.test(idx2test, dest_dir, uid)
             his.add(self.get_list_str(idx2test))
-            if self.test(idx2test, dest_dir, uid) == self.FAIL:  # set probabilities of the deleted elements to 0
+            if  res == self.FAIL:  # set probabilities of the deleted elements to 0
                 for set0 in range(0, len(p)):
                      if set0 not in idx2test:
                         p[set0] = 0
@@ -690,7 +693,6 @@ class DD:
                             matrix[set0][index] = 0.0
                 retIdx = idx2test
             else:  # test(seq2test, *test_args) == PASS:
-                res = self.PASS
                 p_cp = p[:]
                 for setd in range(0, len(p)):
                     if setd in delIdx and 0 < p[setd] < 1:
@@ -703,7 +705,7 @@ class DD:
             print('{}:{}'.format(idx2test, res))
             print(p)
             print(tabulate(matrix, tablefmt="fancy_grid", showindex=True, headers=list(range(len(p)))))
-        print("{}->{}->{}".format(len(his), len(hisCE), retIdx))
+        print("{}->{}->{}".format(len(his), len(self.CE_DICT), retIdx))
         return retIdx
     
     def _get_hunks_from_err(self,err_message:str,c):
@@ -738,6 +740,7 @@ class DD:
         return res
     
     def predict_vaild_Idx(self, idx2test, retIdx, matrix: ndarray, cpro: list, histotal: dict,build_info):
+        print(f"{idx2test} 编译失败，尝试预测子集")
         is_compile =False
         if self.ERR_GAIN == 1:
             matrix_score = self.check_matrix_score(matrix);
@@ -763,13 +766,11 @@ class DD:
         if not is_compile:
             self.CE_DICT[err_key] =(n_testIdx,build_info)
         #根据编译结果根新概率矩阵
-        if (not is_compile) and build_info:
-            if build_info and len(build_info.err_set) < len(last_buildInfo.err_set):
+        if (not is_compile):
+            if build_info and last_buildInfo and len(build_info.err_set) < len(last_buildInfo.err_set) and last_testIdx:
                 #更新概率
                 if(n_testIdx < last_testIdx):
                     self.updateMatrix(n_testIdx,self.getIdx2test(last_testIdx,n_testIdx),matrix)
-                elif(n_testIdx > last_testIdx):  
-                    self.updateMatrix(last_testIdx,self.getIdx2test(n_testIdx,last_testIdx),matrix)
             else:
                 self.updateMatrix(n_testIdx,self.getIdx2test(retIdx,n_testIdx),matrix)
                          
@@ -783,6 +784,7 @@ class DD:
     def gen_subset_by_err(self,matrix,testIdx,retIdx,build_info):
         #这个时候我们希望compile error占主导
         #1. 首先尝试添加元素
+        print("通过log进行添加")
         is_compile =False
         last_testIdx = testIdx[:]
         last_buildInfo = copy.deepcopy(build_info)
@@ -794,7 +796,7 @@ class DD:
             last_testIdx = n_testIdx
             if is_compile:
                 return  is_compile,n_testIdx,dtest_dir, uid       
-       
+        print("通过log进行删除")
         #2. 尝试删除元素
         last_testIdx = testIdx[:]
         last_buildInfo = copy.deepcopy(build_info)
@@ -810,6 +812,7 @@ class DD:
     
     
     def gen_subset_by_matrix(self,matrix,testIdx,retIdx,build_info):
+        print("通过matrix进行添加")
         is_compile =False
         #首先尝试添加元素
         last_buildInfo = copy.deepcopy(build_info)
@@ -831,9 +834,10 @@ class DD:
             is_compile, dtest_dir, uid,last_buildInfo = self.check_compile(n_testIdx, testIdx,last_buildInfo,retIdx,matrix)
             if is_compile:
                 return  is_compile,n_testIdx,dtest_dir, uid
-                 
+        
+        print("通过matrix进行减少")         
         last_buildInfo = copy.deepcopy(build_info)
-        his=set()
+        his=set()      
         while not is_compile:    
             if len(his)>3000 or len(his)>2**len(testIdx):
                 break
@@ -856,7 +860,7 @@ class DD:
         test_del_weights =  [np.max(matrix[row,:]) for row in testIdx]
         #2. 将err提供的相关元素来融合权重 
         #融合方式为 wi+(1-wi)/2 *xi 其中xi=1表示err中的元素
-        test_del_weights = [w+(1-w)/2 if w in err_cids else w for w in testIdx]
+        test_del_weights = [test_del_weights[index]+(1-test_del_weights[index])/2 if testIdx[index] in err_cids else test_del_weights[index] for index in range(len(testIdx))]
         
         #3.根据融合的概率权重进行随机选择
         del_idx =[]
@@ -874,7 +878,8 @@ class DD:
 
         #2. 将err提供的相关元素来融合权重 
         #融合方式为 wj+(1-wj)/2 *xi 其中xi=1表示err中的元素
-        del_add_weights = [w+(1-w)/2 if w in err_cids else w for w in del_add_weights]
+        del_add_weights = [ del_add_weights[index]+(1-del_add_weights[index])/2 if delIdx[index] in err_cids else del_add_weights[index] for index in range(len(del_add_weights))]
+        
         # 这里不对del_weights 进行归一化，原因是，每一个delIdx中元素被依赖的概率是独立的。不需要delIdx中的权重概率和是1
 
         #3.根据融合的概率权重进行随机选择

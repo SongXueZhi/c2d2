@@ -255,6 +255,7 @@ class DD:
     ERR_GAIN =1
     Matirx_GAIN = 0    
     CE_DICT={}
+    LAST_MATRIX_SCORE=0
 
     def __init__(self):
         self.__resolving = 0
@@ -656,16 +657,26 @@ class DD:
         cc = 0
         i =0
         iscompile = True
+        last_test=retIdx
+        is_e =True
         while not self.testDone(p):
             last_p = p[:]
             delIdx = self.sample(p)
+            
             if len(delIdx) == 0:
                 break
             idx2test = self.getIdx2test(retIdx, delIdx)
-            if  not iscompile:
+            m = 0 
+            if ( not iscompile or sorted(idx2test) == sorted(last_test) or not is_e):
                 weights = [p[item] for item in idx2test]
-                idx2test = self.weight_select(weights,idx2test)
                 
+                while self.get_list_str(idx2test) in self.CE_DICT:
+                    if m< min(1000,len(retIdx)**2):
+                        m+=1 
+                        idx2test = self.weight_select(weights,retIdx)
+                    else:
+                        break    
+            last_test = idx2test    
             idx2test = self.resolve_dependency(idx2test, retIdx, matrix=matrix, cpro=p)
             delIdx = self.getIdx2test(retIdx, idx2test)
             iscompile, dest_dir, uid,build_result = self.check_compile(idx2test,None,None,retIdx,matrix)
@@ -673,15 +684,24 @@ class DD:
                 iscompile, n_testIdx, dest_dir, uid = self.predict_vaild_Idx(idx2test=idx2test,
                                                                              retIdx=retIdx, matrix=matrix, cpro=p,
                                                                              histotal=hisCE, build_info=build_result)
+                if self.caculate_matrix_score(matrix) == self.LAST_MATRIX_SCORE:
+                    is_e = False               
+                
+                self.LAST_MATRIX_SCORE = self.caculate_matrix_score(matrix) 
+                print(f"当前增益{self.LAST_MATRIX_SCORE}")
+                  
                 if not iscompile:
                     i+=1
-                    if i < 100 or i<2**len(retIdx):
+                    if i < min(1000,2**len(retIdx)):
                         continue
                     else:
                         dest_dir =None
                         uid = None
+                        is_e = True
                 else:
-                    idx2test = n_testIdx        
+                    idx2test = n_testIdx
+                    delIdx = self.getIdx2test(retIdx,idx2test) 
+                                           
             res = self.test(idx2test, dest_dir, uid)
             his.add(self.get_list_str(idx2test))
             if  res == self.FAIL:  # set probabilities of the deleted elements to 0
@@ -698,13 +718,19 @@ class DD:
                     if setd in delIdx and 0 < p[setd] < 1:
                         delta = (self.computRatio(delIdx, p_cp) - 1) * p_cp[setd]
                         p[setd] = p_cp[setd] + delta
+                if res != self.UNRESOLVED:
+                    for item in retIdx:
+                        for item1 in retIdx:
+                            if matrix[item][item1]>0:
+                                p[item1] =max(p[item]*matrix[item][item1],p[item1])        
             if set(last_p) == set(p):
                 cc += 1
             if cc > 10:
                 break
             print('{}:{}'.format(idx2test, res))
             print(p)
-            print(tabulate(matrix, tablefmt="fancy_grid", showindex=True, headers=list(range(len(p)))))
+            
+            # print(tabulate(matrix, tablefmt="fancy_grid", showindex=True, headers=list(range(len(p)))))
         print("{}->{}->{}".format(len(his), len(self.CE_DICT), retIdx))
         return retIdx
     
@@ -819,7 +845,7 @@ class DD:
         his=set()
         delIdx = self.getIdx2test(retIdx,testIdx)
         while not is_compile:
-            if len(his)>3000 or len(his)>2**len(delIdx):
+            if len(his)> min(3000,len(his)>2**len(delIdx)):
                 break
             n_testIdx = self.gen_ADDset_from_matrix(matrix,testIdx,retIdx,last_buildInfo.rcids)
             if n_testIdx == None:
@@ -833,15 +859,19 @@ class DD:
                 break
             is_compile, dtest_dir, uid,last_buildInfo = self.check_compile(n_testIdx, testIdx,last_buildInfo,retIdx,matrix)
             if is_compile:
+                if self.caculate_matrix_score(matrix) == self.LAST_MATRIX_SCORE:
+                    break
                 return  is_compile,n_testIdx,dtest_dir, uid
         
         print("通过matrix进行减少")         
         last_buildInfo = copy.deepcopy(build_info)
-        his=set()      
+        his=set() 
+        last_m_score =0.000     
         while not is_compile:    
-            if len(his)>3000 or len(his)>2**len(testIdx):
+            if len(his)> min(3000,len(his)>2**len(delIdx)):
                 break
             n_testIdx = self.gen_DELset_from_matrix(matrix,testIdx,last_buildInfo.rcids)
+            stt = self.get_list_str(n_testIdx)
             if stt not in self.CE_DICT:
                 his.add(stt)
             else:
@@ -849,10 +879,17 @@ class DD:
             if len(n_testIdx) == len(retIdx) or len(n_testIdx) == 0:
                 break
             is_compile, dtest_dir, uid,last_buildInfo = self.check_compile(n_testIdx, testIdx,last_buildInfo,retIdx,matrix)
-            if is_compile:
+            if is_compile: 
+                if self.caculate_matrix_score(matrix) == self.LAST_MATRIX_SCORE:
+                    break
                 return  is_compile,n_testIdx,dtest_dir, uid     
         return False,None,None,None
     
+    def caculate_matrix_score(self,matrix1):
+        nz1 = np.count_nonzero(matrix1)
+        sum1 = np.sum(matrix1)
+        return sum1/nz1
+        
     def gen_DELset_from_matrix(self,matrix,testIdx,err_cids):
         #权重算法，根据matrix中的依赖概率和err信息共同选择
         #1. 首先计算testIdx对外部元素的依赖程度
@@ -1035,7 +1072,7 @@ class DD:
                 for item in cp:
                     for i in range(0, len(cpro)):
                         if matrix[item][i] == 1:
-                            if i not in idx2test:
+                            if i not in idx2test and item in cp :
                                 cp.remove(item)
                 cp = list(set(cp))            
                 for item in cp:

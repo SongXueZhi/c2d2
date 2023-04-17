@@ -567,11 +567,11 @@ class JavaDD(DD, object):
             if not keep_variant:
                 try:
                     logger.info('removing %s...' % dest_dir)
-                    shutil.rmtree(dest_dir)
+                    # shutil.rmtree(dest_dir)
                 except Exception as e:
                     logger.warning('%s' % e)
 
-            return False,None,None,None
+            # return False,None,None,None
 
         # build patched application
 

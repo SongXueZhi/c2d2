@@ -7,6 +7,7 @@ class Error_Parser():
     maven_type_regular = r"(\w+):\s*(.+)"
     maven_class_regular = r'^[a-z]+(\.[a-z][a-z0-9]*)*\.([A-Z][a-zA-Z0-9]*)$'
     maven_method_regular = "((?:interface|enum|method) [\w.$]+(?:<.*?>)?(?:\(.*?\))?)"
+    pattern = r"\b(\w+)\((?:[^\n,]+,)*[^\n,]*[a-zA-Z]?\)"
     
         
     def parse_errors(self,output):
@@ -15,7 +16,7 @@ class Error_Parser():
         error_pattern = re.compile(self.maven_err_regular)
         type_pattern = re.compile(self.maven_type_regular)
         class_pattern = re.compile(self.maven_class_regular)
-        method_pattern = re.compile(self.maven_method_regular)
+        method_pattern = re.compile(self.pattern)
         
         lines = output.split("\n")
         line_index = -1
@@ -38,7 +39,7 @@ class Error_Parser():
                         class_match = class_pattern.search(line)
                         method_match = method_pattern.search(line)
                         if method_match:
-                            o_type, o_name, o_loc= method_match.group() 
+                            o_name= method_match[0]
                         elif class_match:
                             o_type='class'
                             o_name=class_match.group()                        

@@ -690,8 +690,9 @@ class DD:
                         for index in range(0, len(matrix)):
                             matrix[index][set0] = 0.0
                             matrix[set0][index] = 0.0
+                if len(idx2test) < len(retIdx):
+                    self.reset(p,matrix)            
                 retIdx = idx2test
-                self.reset(p,matrix)
             else:  # test(seq2test, *test_args) == PASS:
                 p_cp = p[:]
                 for setd in range(0, len(p)):
@@ -742,8 +743,7 @@ class DD:
     
     def reset(self,p,matrix):
         for i in range(len(p)):
-            if 0 < p[i] < 1:
-                p[i] = 0.25
+            p[i] = 0.25
         self.resetMatrix(matrix)
 
         

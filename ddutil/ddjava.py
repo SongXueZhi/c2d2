@@ -691,6 +691,9 @@ class JavaDD(DD, object):
     def _get_dep_matrix(self):
         return self._decomp.get_dep_matrix(self._vp)
     
+    def resetMatrix(self,matrix):
+        self._decomp.reset_dep_matrix(self._vp,matrix)
+        
     def do_ddmin(self, c, stage=1, prefix=''):
         c_min = c
         if len(c) > 1:
@@ -1255,6 +1258,8 @@ def run(algo, proj_id, working_dir, conf=None, src_dir=None, vers=None,
 
                 break
     return ok
+
+    
  
 def main():
 

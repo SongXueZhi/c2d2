@@ -1,0 +1,490 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<graphml xmlns="http://graphml.graphdrawing.org/xmlns"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://graphml.graphdrawing.org/xmlns http://graphml.graphdrawing.org/xmlns/1.0/graphml.xsd">
+
+  <!-- property keys -->
+  <key id="key0" for="node" attr.name="label" attr.type="string" />
+  <key id="key1" for="edge" attr.name="label" attr.type="string" />
+
+  <graph id="G" edgedefault="directed" parse.nodeids="canonical" parse.edgeids="canonical" parse.order="nodesfirst">
+
+   <!-- graph properties -->
+
+   <!-- vertices -->
+    <node id="n0">
+      <data key="key0">HUNK (0) DEL StaticImportOnDemandDeclaration [7:0-7:74 src/main/java/com/univocity/parsers/annotations/helpers/TransformedHeader.java]-[3:0-5:26 src/main/java/com/univocity/parsers/annotations/helpers/TransformedHeader.java]</data>
+    </node>
+    <node id="n1">
+      <data key="key0">HUNK (0) DEL Argument|True [485:62-485:65 src/main/java/com/univocity/parsers/annotations/helpers/AnnotationHelper.java]-[480:33-480:43 src/main/java/com/univocity/parsers/annotations/helpers/AnnotationHelper.java]</data>
+    </node>
+    <node id="n2">
+      <data key="key0">HUNK (11) DEL IfStatement [437:3-439:3 src/main/java/com/univocity/parsers/annotations/helpers/AnnotationHelper.java]-[435:55-443:2 src/main/java/com/univocity/parsers/annotations/helpers/AnnotationHelper.java]</data>
+    </node>
+    <node id="n3">
+      <data key="key0">HUNK (0) DEL Arguments [489:36-489:37 src/main/java/com/univocity/parsers/annotations/helpers/AnnotationHelper.java]-[481:23-481:57 src/main/java/com/univocity/parsers/annotations/helpers/AnnotationHelper.java]</data>
+    </node>
+    <node id="n4">
+      <data key="key0">HUNK (5) DEL LocalVariableDeclarationStatement [440:3-440:34 src/main/java/com/univocity/parsers/annotations/helpers/AnnotationHelper.java]-[435:55-443:2 src/main/java/com/univocity/parsers/annotations/helpers/AnnotationHelper.java]</data>
+    </node>
+    <node id="n5">
+      <data key="key0">HUNK (11) DEL IfStatement [89:4-91:4 src/main/java/com/univocity/parsers/annotations/helpers/FieldMapping.java]-[87:19-90:3 src/main/java/com/univocity/parsers/annotations/helpers/FieldMapping.java]</data>
+    </node>
+    <node id="n6">
+      <data key="key0">HUNK (0) DEL Argument|NullLiteral [436:68-436:71 src/main/java/com/univocity/parsers/annotations/helpers/AnnotationHelper.java]-[435:33-435:43 src/main/java/com/univocity/parsers/annotations/helpers/AnnotationHelper.java]</data>
+    </node>
+    <node id="n7">
+      <data key="key0">HUNK (0) DEL Argument|True [436:62-436:65 src/main/java/com/univocity/parsers/annotations/helpers/AnnotationHelper.java]-[435:33-435:43 src/main/java/com/univocity/parsers/annotations/helpers/AnnotationHelper.java]</data>
+    </node>
+    <node id="n8">
+      <data key="key0">HUNK (45) DEL MethodDeclaration [58:1-70:1 src/main/java/com/univocity/parsers/annotations/helpers/TransformedHeader.java]-[13:31-72:0 src/main/java/com/univocity/parsers/annotations/helpers/TransformedHeader.java]</data>
+    </node>
+    <node id="n9">
+      <data key="key0">HUNK (5) DEL IfStatement [486:3-488:3 src/main/java/com/univocity/parsers/annotations/helpers/AnnotationHelper.java]-[480:55-490:2 src/main/java/com/univocity/parsers/annotations/helpers/AnnotationHelper.java]</data>
+    </node>
+    <node id="n10">
+      <data key="key0">HUNK (0) DEL Argument|NullLiteral [485:68-485:71 src/main/java/com/univocity/parsers/annotations/helpers/AnnotationHelper.java]-[480:33-480:43 src/main/java/com/univocity/parsers/annotations/helpers/AnnotationHelper.java]</data>
+    </node>
+    <node id="n11">
+      <data key="key0">HUNK (2) INS Arguments [489:15-489:37 src/main/java/com/univocity/parsers/annotations/helpers/AnnotationHelper.java]-[481:37-481:57 src/main/java/com/univocity/parsers/annotations/helpers/AnnotationHelper.java]</data>
+    </node>
+    <node id="n12">
+      <data key="key0">HUNK (1) INS PrimaryMethodInvocation [495:15-495:21 src/main/java/com/univocity/parsers/annotations/helpers/AnnotationHelper.java]-[487:17-487:34 src/main/java/com/univocity/parsers/annotations/helpers/AnnotationHelper.java]</data>
+    </node>
+    <node id="n13">
+      <data key="key0">HUNK (1) INS Block [491:3-496:3 src/main/java/com/univocity/parsers/annotations/helpers/AnnotationHelper.java]-[482:27-489:3 src/main/java/com/univocity/parsers/annotations/helpers/AnnotationHelper.java]</data>
+    </node>
+    <node id="n14">
+      <data key="key0">HUNK (1) INS PrimaryMethodInvocation [493:40-493:72 src/main/java/com/univocity/parsers/annotations/helpers/AnnotationHelper.java]-[485:69-485:86 src/main/java/com/univocity/parsers/annotations/helpers/AnnotationHelper.java]</data>
+    </node>
+    <node id="n15">
+      <data key="key0">HUNK (2) INS NotEq [491:3-496:3 src/main/java/com/univocity/parsers/annotations/helpers/AnnotationHelper.java]-[482:7-482:24 src/main/java/com/univocity/parsers/annotations/helpers/AnnotationHelper.java]</data>
+    </node>
+    <node id="n16">
+      <data key="key0">HUNK (1) INS PrimaryMethodInvocation [436:2-448:2 src/main/java/com/univocity/parsers/annotations/helpers/AnnotationHelper.java]-[435:21-435:52 src/main/java/com/univocity/parsers/annotations/helpers/AnnotationHelper.java]</data>
+    </node>
+    <node id="n17">
+      <data key="key0">HUNK (1) INS PrimaryMethodInvocation [491:7-491:17 src/main/java/com/univocity/parsers/annotations/helpers/AnnotationHelper.java]-[483:8-483:25 src/main/java/com/univocity/parsers/annotations/helpers/AnnotationHelper.java]</data>
+    </node>
+    <node id="n18">
+      <data key="key0">HUNK (1) INS PrimaryMethodInvocation [492:24-492:30 src/main/java/com/univocity/parsers/annotations/helpers/AnnotationHelper.java]-[484:26-484:43 src/main/java/com/univocity/parsers/annotations/helpers/AnnotationHelper.java]</data>
+    </node>
+    <node id="n19">
+      <data key="key0">HUNK (1) INS PrimaryMethodInvocation [485:2-497:2 src/main/java/com/univocity/parsers/annotations/helpers/AnnotationHelper.java]-[480:21-480:52 src/main/java/com/univocity/parsers/annotations/helpers/AnnotationHelper.java]</data>
+    </node>
+    <node id="n20">
+      <data key="key0">HUNK (0) REL PrimaryMethodInvocation [128:96-128:119 src/main/java/com/univocity/parsers/fixed/FixedWidthFields.java]-[128:96-128:116 src/main/java/com/univocity/parsers/fixed/FixedWidthFields.java]</data>
+    </node>
+    <node id="n21">
+      <data key="key0">HUNK (0) REL Modifiers [77:1-77:6 src/main/java/com/univocity/parsers/annotations/helpers/TransformedHeader.java]-[56:1-56:6 src/main/java/com/univocity/parsers/annotations/helpers/TransformedHeader.java]</data>
+    </node>
+    <node id="n22">
+      <data key="key0">HUNK (0) REL Arguments [137:117-137:118 src/main/java/com/univocity/parsers/fixed/FixedWidthFields.java]-[137:114-137:115 src/main/java/com/univocity/parsers/fixed/FixedWidthFields.java]</data>
+    </node>
+    <node id="n23">
+      <data key="key0">HUNK (0) REL Arguments [485:50-485:72 src/main/java/com/univocity/parsers/annotations/helpers/AnnotationHelper.java]-[480:33-480:43 src/main/java/com/univocity/parsers/annotations/helpers/AnnotationHelper.java]</data>
+    </node>
+    <node id="n24">
+      <data key="key0">HUNK (0) REL Name [491:7-491:11 src/main/java/com/univocity/parsers/annotations/helpers/AnnotationHelper.java]-[483:8-483:17 src/main/java/com/univocity/parsers/annotations/helpers/AnnotationHelper.java]</data>
+    </node>
+    <node id="n25">
+      <data key="key0">HUNK (0) REL ReferenceType [436:7-436:23 src/main/java/com/univocity/parsers/annotations/helpers/AnnotationHelper.java]-[435:7-435:11 src/main/java/com/univocity/parsers/annotations/helpers/AnnotationHelper.java]</data>
+    </node>
+    <node id="n26">
+      <data key="key0">HUNK (0) REL Arguments [493:126-493:127 src/main/java/com/univocity/parsers/annotations/helpers/AnnotationHelper.java]-[485:130-485:131 src/main/java/com/univocity/parsers/annotations/helpers/AnnotationHelper.java]</data>
+    </node>
+    <node id="n27">
+      <data key="key0">HUNK (0) REL Name [493:68-493:72 src/main/java/com/univocity/parsers/annotations/helpers/AnnotationHelper.java]-[485:69-485:78 src/main/java/com/univocity/parsers/annotations/helpers/AnnotationHelper.java]</data>
+    </node>
+    <node id="n28">
+      <data key="key0">HUNK (0) REL IfStatement [491:3-496:3 src/main/java/com/univocity/parsers/annotations/helpers/AnnotationHelper.java]-[482:3-489:3 src/main/java/com/univocity/parsers/annotations/helpers/AnnotationHelper.java]</data>
+    </node>
+    <node id="n29">
+      <data key="key0">HUNK (0) REL Name [492:25-492:29 src/main/java/com/univocity/parsers/annotations/helpers/AnnotationHelper.java]-[484:26-484:35 src/main/java/com/univocity/parsers/annotations/helpers/AnnotationHelper.java]</data>
+    </node>
+    <node id="n30">
+      <data key="key0">HUNK (0) REL LocalVariableDeclarationStatement [489:3-489:38 src/main/java/com/univocity/parsers/annotations/helpers/AnnotationHelper.java]-[481:3-481:58 src/main/java/com/univocity/parsers/annotations/helpers/AnnotationHelper.java]</data>
+    </node>
+    <node id="n31">
+      <data key="key0">HUNK (0) REL PrimaryMethodInvocation [137:95-137:118 src/main/java/com/univocity/parsers/fixed/FixedWidthFields.java]-[137:95-137:115 src/main/java/com/univocity/parsers/fixed/FixedWidthFields.java]</data>
+    </node>
+    <node id="n32">
+      <data key="key0">HUNK (0) REL ReferenceType [485:7-485:23 src/main/java/com/univocity/parsers/annotations/helpers/AnnotationHelper.java]-[480:7-480:11 src/main/java/com/univocity/parsers/annotations/helpers/AnnotationHelper.java]</data>
+    </node>
+    <node id="n33">
+      <data key="key0">HUNK (0) REL Argument|PrimaryMethodInvocation [118:32-118:55 src/main/java/com/univocity/parsers/fixed/FixedWidthFields.java]-[118:32-118:52 src/main/java/com/univocity/parsers/fixed/FixedWidthFields.java]</data>
+    </node>
+    <node id="n34">
+      <data key="key0">HUNK (0) REL PrimaryMethodInvocation [493:103-493:127 src/main/java/com/univocity/parsers/annotations/helpers/AnnotationHelper.java]-[485:117-485:131 src/main/java/com/univocity/parsers/annotations/helpers/AnnotationHelper.java]</data>
+    </node>
+    <node id="n35">
+      <data key="key0">HUNK (0) REL Arguments [118:54-118:55 src/main/java/com/univocity/parsers/fixed/FixedWidthFields.java]-[118:51-118:52 src/main/java/com/univocity/parsers/fixed/FixedWidthFields.java]</data>
+    </node>
+    <node id="n36">
+      <data key="key0">HUNK (0) REL Parameter [436:7-436:30 src/main/java/com/univocity/parsers/annotations/helpers/AnnotationHelper.java]-[435:7-435:17 src/main/java/com/univocity/parsers/annotations/helpers/AnnotationHelper.java]</data>
+    </node>
+    <node id="n37">
+      <data key="key0">HUNK (0) REL IfStatement [492:4-494:4 src/main/java/com/univocity/parsers/annotations/helpers/AnnotationHelper.java]-[484:5-486:5 src/main/java/com/univocity/parsers/annotations/helpers/AnnotationHelper.java]</data>
+    </node>
+    <node id="n38">
+      <data key="key0">HUNK (0) REL Name [493:103-493:108 src/main/java/com/univocity/parsers/annotations/helpers/AnnotationHelper.java]-[485:117-485:121 src/main/java/com/univocity/parsers/annotations/helpers/AnnotationHelper.java]</data>
+    </node>
+    <node id="n39">
+      <data key="key0">HUNK (0) REL Arguments [128:118-128:119 src/main/java/com/univocity/parsers/fixed/FixedWidthFields.java]-[128:115-128:116 src/main/java/com/univocity/parsers/fixed/FixedWidthFields.java]</data>
+    </node>
+    <node id="n40">
+      <data key="key0">HUNK (0) REL ReferenceType [489:3-489:5 src/main/java/com/univocity/parsers/annotations/helpers/AnnotationHelper.java]-[481:3-481:8 src/main/java/com/univocity/parsers/annotations/helpers/AnnotationHelper.java]</data>
+    </node>
+    <node id="n41">
+      <data key="key0">HUNK (0) REL Name [495:16-495:20 src/main/java/com/univocity/parsers/annotations/helpers/AnnotationHelper.java]-[487:17-487:26 src/main/java/com/univocity/parsers/annotations/helpers/AnnotationHelper.java]</data>
+    </node>
+    <node id="n42">
+      <data key="key0">HUNK (0) REL Arguments [436:50-436:72 src/main/java/com/univocity/parsers/annotations/helpers/AnnotationHelper.java]-[435:33-435:43 src/main/java/com/univocity/parsers/annotations/helpers/AnnotationHelper.java]</data>
+    </node>
+    <node id="n43">
+      <data key="key0">HUNK (0) REL SimpleMethodInvocation [489:15-489:37 src/main/java/com/univocity/parsers/annotations/helpers/AnnotationHelper.java]-[481:23-481:57 src/main/java/com/univocity/parsers/annotations/helpers/AnnotationHelper.java]</data>
+    </node>
+    <node id="n44">
+      <data key="key0">HUNK (0) REL SimpleMethodInvocation [485:34-485:72 src/main/java/com/univocity/parsers/annotations/helpers/AnnotationHelper.java]-[480:21-480:43 src/main/java/com/univocity/parsers/annotations/helpers/AnnotationHelper.java]</data>
+    </node>
+    <node id="n45">
+      <data key="key0">HUNK (0) REL MethodDeclaration [77:1-82:1 src/main/java/com/univocity/parsers/annotations/helpers/TransformedHeader.java]-[56:1-61:1 src/main/java/com/univocity/parsers/annotations/helpers/TransformedHeader.java]</data>
+    </node>
+    <node id="n46">
+      <data key="key0">HUNK (0) REL SimpleMethodInvocation [436:34-436:72 src/main/java/com/univocity/parsers/annotations/helpers/AnnotationHelper.java]-[435:21-435:43 src/main/java/com/univocity/parsers/annotations/helpers/AnnotationHelper.java]</data>
+    </node>
+    <node id="n47">
+      <data key="key0">HUNK (0) REL TypeMethodInvocation [37:22-37:56 src/main/java/com/univocity/parsers/annotations/helpers/TransformedHeader.java]-[35:22-35:73 src/main/java/com/univocity/parsers/annotations/helpers/TransformedHeader.java]</data>
+    </node>
+    <node id="n48">
+      <data key="key0">HUNK (0) REL VariableDeclarator [489:7-489:37 src/main/java/com/univocity/parsers/annotations/helpers/AnnotationHelper.java]-[481:10-481:57 src/main/java/com/univocity/parsers/annotations/helpers/AnnotationHelper.java]</data>
+    </node>
+    <node id="n49">
+      <data key="key0">HUNK (0) REL MethodBody [77:34-82:1 src/main/java/com/univocity/parsers/annotations/helpers/TransformedHeader.java]-[56:31-61:1 src/main/java/com/univocity/parsers/annotations/helpers/TransformedHeader.java]</data>
+    </node>
+    <node id="n50">
+      <data key="key0">HUNK (0) REL Name [489:15-489:20 src/main/java/com/univocity/parsers/annotations/helpers/AnnotationHelper.java]-[481:38-481:42 src/main/java/com/univocity/parsers/annotations/helpers/AnnotationHelper.java]</data>
+    </node>
+    <node id="n51">
+      <data key="key0">HUNK (0) REL Parameter [485:7-485:30 src/main/java/com/univocity/parsers/annotations/helpers/AnnotationHelper.java]-[480:7-480:17 src/main/java/com/univocity/parsers/annotations/helpers/AnnotationHelper.java]</data>
+    </node>
+    <node id="n52">
+      <data key="key0">CHG AddStatement:com.univocity.parsers.annotations.helpers.AnnotationHelper</data>
+    </node>
+    <node id="n53">
+      <data key="key0">CHG AddStatement:com.univocity.parsers.annotations.helpers.AnnotationHelper</data>
+    </node>
+    <node id="n54">
+      <data key="key0">CHG AddStatement:com.univocity.parsers.annotations.helpers.AnnotationHelper</data>
+    </node>
+    <node id="n55">
+      <data key="key0">CHG AddStatement:com.univocity.parsers.annotations.helpers.AnnotationHelper</data>
+    </node>
+    <node id="n56">
+      <data key="key0">CHG AddStatement:com.univocity.parsers.annotations.helpers.AnnotationHelper</data>
+    </node>
+    <node id="n57">
+      <data key="key0">CHG AddStatement:com.univocity.parsers.annotations.helpers.AnnotationHelper</data>
+    </node>
+    <node id="n58">
+      <data key="key0">CHG AddStatement:com.univocity.parsers.annotations.helpers.AnnotationHelper</data>
+    </node>
+    <node id="n59">
+      <data key="key0">CHG AddStatement:com.univocity.parsers.annotations.helpers.AnnotationHelper</data>
+    </node>
+    <node id="n60">
+      <data key="key0">CHG ChangeVdtor:com.univocity.parsers.annotations.helpers.AnnotationHelper:index</data>
+    </node>
+    <node id="n61">
+      <data key="key0">CHG ChangeVType:com.univocity.parsers.annotations.helpers.AnnotationHelper.getSelectedIndexes(Ljava.lang.Class;)[Ljava.lang.Integer;:index</data>
+    </node>
+    <node id="n62">
+      <data key="key0">CHG ChangeMethod:com.univocity.parsers.annotations.helpers.TransformedHeader.getAttributeName()Ljava.lang.String;</data>
+    </node>
+    <node id="n63">
+      <data key="key0">CHG ChangeInvocation:com.univocity.parsers.annotations.helpers.AnnotationHelper.allFieldsIndexOrNameBased</data>
+    </node>
+    <node id="n64">
+      <data key="key0">CHG ChangeInvocation:com.univocity.parsers.annotations.helpers.AnnotationHelper.getSelectedIndexes</data>
+    </node>
+    <node id="n65">
+      <data key="key0">CHG ChangeInvocation:com.univocity.parsers.annotations.helpers.AnnotationHelper.getSelectedIndexes</data>
+    </node>
+    <node id="n66">
+      <data key="key0">CHG RemoveReturnType:com.univocity.parsers.annotations.helpers.TransformedHeader.getHeaderIndex()I</data>
+    </node>
+    <node id="n67">
+      <data key="key0">CHG ChangeInvocation:com.univocity.parsers.annotations.helpers.AnnotationHelper:getAttributeName</data>
+    </node>
+
+   <!-- edges -->
+    <edge id="e0" source="n3" target="n11">
+      <data key="key1">del-ins</data>
+    </edge>
+    <edge id="e1" source="n11" target="n50">
+      <data key="key1">ins-rel</data>
+    </edge>
+    <edge id="e2" source="n12" target="n41">
+      <data key="key1">ins-rel</data>
+    </edge>
+    <edge id="e3" source="n14" target="n27">
+      <data key="key1">ins-rel</data>
+    </edge>
+    <edge id="e4" source="n16" target="n46">
+      <data key="key1">ins-rel</data>
+    </edge>
+    <edge id="e5" source="n17" target="n24">
+      <data key="key1">ins-rel</data>
+    </edge>
+    <edge id="e6" source="n18" target="n29">
+      <data key="key1">ins-rel</data>
+    </edge>
+    <edge id="e7" source="n19" target="n44">
+      <data key="key1">ins-rel</data>
+    </edge>
+    <edge id="e8" source="n20" target="n39">
+      <data key="key1">rel-rel</data>
+    </edge>
+    <edge id="e9" source="n23" target="n10">
+      <data key="key1">rel-del</data>
+    </edge>
+    <edge id="e10" source="n23" target="n1">
+      <data key="key1">rel-del</data>
+    </edge>
+    <edge id="e11" source="n28" target="n15">
+      <data key="key1">rel-ins</data>
+    </edge>
+    <edge id="e12" source="n28" target="n13">
+      <data key="key1">rel-ins</data>
+    </edge>
+    <edge id="e13" source="n30" target="n40">
+      <data key="key1">rel-rel</data>
+    </edge>
+    <edge id="e14" source="n30" target="n48">
+      <data key="key1">rel-rel</data>
+    </edge>
+    <edge id="e15" source="n31" target="n22">
+      <data key="key1">rel-rel</data>
+    </edge>
+    <edge id="e16" source="n33" target="n35">
+      <data key="key1">rel-rel</data>
+    </edge>
+    <edge id="e17" source="n34" target="n38">
+      <data key="key1">rel-rel</data>
+    </edge>
+    <edge id="e18" source="n34" target="n26">
+      <data key="key1">rel-rel</data>
+    </edge>
+    <edge id="e19" source="n36" target="n25">
+      <data key="key1">rel-rel</data>
+    </edge>
+    <edge id="e20" source="n42" target="n6">
+      <data key="key1">rel-del</data>
+    </edge>
+    <edge id="e21" source="n42" target="n7">
+      <data key="key1">rel-del</data>
+    </edge>
+    <edge id="e22" source="n43" target="n3">
+      <data key="key1">rel-del</data>
+    </edge>
+    <edge id="e23" source="n43" target="n11">
+      <data key="key1">rel-ins</data>
+    </edge>
+    <edge id="e24" source="n44" target="n23">
+      <data key="key1">rel-rel</data>
+    </edge>
+    <edge id="e25" source="n45" target="n49">
+      <data key="key1">rel-rel</data>
+    </edge>
+    <edge id="e26" source="n45" target="n21">
+      <data key="key1">rel-rel</data>
+    </edge>
+    <edge id="e27" source="n46" target="n42">
+      <data key="key1">rel-rel</data>
+    </edge>
+    <edge id="e28" source="n48" target="n43">
+      <data key="key1">rel-rel</data>
+    </edge>
+    <edge id="e29" source="n51" target="n32">
+      <data key="key1">rel-rel</data>
+    </edge>
+    <edge id="e30" source="n52" target="n19">
+      <data key="key1">CHG AddStatement:com.univocity.parsers.annotations.helpers.AnnotationHelper</data>
+    </edge>
+    <edge id="e31" source="n52" target="n19">
+      <data key="key1">CHG AddStatement:com.univocity.parsers.annotations.helpers.AnnotationHelper</data>
+    </edge>
+    <edge id="e32" source="n53" target="n13">
+      <data key="key1">CHG AddStatement:com.univocity.parsers.annotations.helpers.AnnotationHelper</data>
+    </edge>
+    <edge id="e33" source="n53" target="n17">
+      <data key="key1">CHG AddStatement:com.univocity.parsers.annotations.helpers.AnnotationHelper</data>
+    </edge>
+    <edge id="e34" source="n53" target="n15">
+      <data key="key1">CHG AddStatement:com.univocity.parsers.annotations.helpers.AnnotationHelper</data>
+    </edge>
+    <edge id="e35" source="n53" target="n13">
+      <data key="key1">CHG AddStatement:com.univocity.parsers.annotations.helpers.AnnotationHelper</data>
+    </edge>
+    <edge id="e36" source="n54" target="n13">
+      <data key="key1">CHG AddStatement:com.univocity.parsers.annotations.helpers.AnnotationHelper</data>
+    </edge>
+    <edge id="e37" source="n54" target="n15">
+      <data key="key1">CHG AddStatement:com.univocity.parsers.annotations.helpers.AnnotationHelper</data>
+    </edge>
+    <edge id="e38" source="n54" target="n13">
+      <data key="key1">CHG AddStatement:com.univocity.parsers.annotations.helpers.AnnotationHelper</data>
+    </edge>
+    <edge id="e39" source="n54" target="n17">
+      <data key="key1">CHG AddStatement:com.univocity.parsers.annotations.helpers.AnnotationHelper</data>
+    </edge>
+    <edge id="e40" source="n54" target="n15">
+      <data key="key1">CHG InsertSiblings:com.univocity.parsers.annotations.helpers.AnnotationHelper</data>
+    </edge>
+    <edge id="e41" source="n55" target="n18">
+      <data key="key1">CHG AddStatement:com.univocity.parsers.annotations.helpers.AnnotationHelper</data>
+    </edge>
+    <edge id="e42" source="n55" target="n18">
+      <data key="key1">CHG AddStatement:com.univocity.parsers.annotations.helpers.AnnotationHelper</data>
+    </edge>
+    <edge id="e43" source="n56" target="n14">
+      <data key="key1">CHG AddStatement:com.univocity.parsers.annotations.helpers.AnnotationHelper</data>
+    </edge>
+    <edge id="e44" source="n56" target="n14">
+      <data key="key1">CHG AddStatement:com.univocity.parsers.annotations.helpers.AnnotationHelper</data>
+    </edge>
+    <edge id="e45" source="n57" target="n16">
+      <data key="key1">CHG AddStatement:com.univocity.parsers.annotations.helpers.AnnotationHelper</data>
+    </edge>
+    <edge id="e46" source="n57" target="n16">
+      <data key="key1">CHG AddStatement:com.univocity.parsers.annotations.helpers.AnnotationHelper</data>
+    </edge>
+    <edge id="e47" source="n58" target="n17">
+      <data key="key1">CHG AddStatement:com.univocity.parsers.annotations.helpers.AnnotationHelper</data>
+    </edge>
+    <edge id="e48" source="n58" target="n17">
+      <data key="key1">CHG AddStatement:com.univocity.parsers.annotations.helpers.AnnotationHelper</data>
+    </edge>
+    <edge id="e49" source="n59" target="n12">
+      <data key="key1">CHG AddStatement:com.univocity.parsers.annotations.helpers.AnnotationHelper</data>
+    </edge>
+    <edge id="e50" source="n59" target="n12">
+      <data key="key1">CHG AddStatement:com.univocity.parsers.annotations.helpers.AnnotationHelper</data>
+    </edge>
+    <edge id="e51" source="n60" target="n48">
+      <data key="key1">CHG ChangeVdtor:com.univocity.parsers.annotations.helpers.AnnotationHelper:index</data>
+    </edge>
+    <edge id="e52" source="n60" target="n29">
+      <data key="key1">CHG ChangeVdtor:com.univocity.parsers.annotations.helpers.AnnotationHelper:index</data>
+    </edge>
+    <edge id="e53" source="n60" target="n24">
+      <data key="key1">CHG ChangeVdtor:com.univocity.parsers.annotations.helpers.AnnotationHelper:index</data>
+    </edge>
+    <edge id="e54" source="n60" target="n41">
+      <data key="key1">CHG ChangeVdtor:com.univocity.parsers.annotations.helpers.AnnotationHelper:index</data>
+    </edge>
+    <edge id="e55" source="n60" target="n27">
+      <data key="key1">CHG ChangeVdtor:com.univocity.parsers.annotations.helpers.AnnotationHelper:index</data>
+    </edge>
+    <edge id="e56" source="n60" target="n11">
+      <data key="key1">CHG ChangeLocalVariableDeclaration:com.univocity.parsers.annotations.helpers.AnnotationHelper.getSelectedIndexes(Ljava.lang.Class;)[Ljava.lang.Integer;</data>
+    </edge>
+    <edge id="e57" source="n60" target="n11">
+      <data key="key1">CHG ChangeLocalVariableDeclaration:com.univocity.parsers.annotations.helpers.AnnotationHelper.getSelectedIndexes(Ljava.lang.Class;)[Ljava.lang.Integer;</data>
+    </edge>
+    <edge id="e58" source="n60" target="n11">
+      <data key="key1">CHG ChangeLocalVariableDeclaration:com.univocity.parsers.annotations.helpers.AnnotationHelper.getSelectedIndexes(Ljava.lang.Class;)[Ljava.lang.Integer;</data>
+    </edge>
+    <edge id="e59" source="n60" target="n3">
+      <data key="key1">CHG ChangeLocalVariableDeclaration:com.univocity.parsers.annotations.helpers.AnnotationHelper.getSelectedIndexes(Ljava.lang.Class;)[Ljava.lang.Integer;</data>
+    </edge>
+    <edge id="e60" source="n61" target="n40">
+      <data key="key1">CHG ChangeVType:com.univocity.parsers.annotations.helpers.AnnotationHelper.getSelectedIndexes(Ljava.lang.Class;)[Ljava.lang.Integer;:index</data>
+    </edge>
+    <edge id="e61" source="n61" target="n43">
+      <data key="key1">CHG ChangeVType:com.univocity.parsers.annotations.helpers.AnnotationHelper.getSelectedIndexes(Ljava.lang.Class;)[Ljava.lang.Integer;:index</data>
+    </edge>
+    <edge id="e62" source="n61" target="n15">
+      <data key="key1">CHG ChangeVType:com.univocity.parsers.annotations.helpers.AnnotationHelper.getSelectedIndexes(Ljava.lang.Class;)[Ljava.lang.Integer;:index</data>
+    </edge>
+    <edge id="e63" source="n61" target="n24">
+      <data key="key1">CHG ChangeVType:com.univocity.parsers.annotations.helpers.AnnotationHelper.getSelectedIndexes(Ljava.lang.Class;)[Ljava.lang.Integer;:index</data>
+    </edge>
+    <edge id="e64" source="n61" target="n29">
+      <data key="key1">CHG ChangeVType:com.univocity.parsers.annotations.helpers.AnnotationHelper.getSelectedIndexes(Ljava.lang.Class;)[Ljava.lang.Integer;:index</data>
+    </edge>
+    <edge id="e65" source="n61" target="n27">
+      <data key="key1">CHG ChangeVType:com.univocity.parsers.annotations.helpers.AnnotationHelper.getSelectedIndexes(Ljava.lang.Class;)[Ljava.lang.Integer;:index</data>
+    </edge>
+    <edge id="e66" source="n61" target="n41">
+      <data key="key1">CHG ChangeVType:com.univocity.parsers.annotations.helpers.AnnotationHelper.getSelectedIndexes(Ljava.lang.Class;)[Ljava.lang.Integer;:index</data>
+    </edge>
+    <edge id="e67" source="n62" target="n45">
+      <data key="key1">CHG ChangeMethod:com.univocity.parsers.annotations.helpers.TransformedHeader.getAttributeName()Ljava.lang.String;</data>
+    </edge>
+    <edge id="e68" source="n62" target="n31">
+      <data key="key1">CHG ChangeMethod:com.univocity.parsers.annotations.helpers.TransformedHeader.getAttributeName()Ljava.lang.String;</data>
+    </edge>
+    <edge id="e69" source="n62" target="n20">
+      <data key="key1">CHG ChangeMethod:com.univocity.parsers.annotations.helpers.TransformedHeader.getAttributeName()Ljava.lang.String;</data>
+    </edge>
+    <edge id="e70" source="n62" target="n34">
+      <data key="key1">CHG ChangeMethod:com.univocity.parsers.annotations.helpers.TransformedHeader.getAttributeName()Ljava.lang.String;</data>
+    </edge>
+    <edge id="e71" source="n62" target="n33">
+      <data key="key1">CHG ChangeMethod:com.univocity.parsers.annotations.helpers.TransformedHeader.getAttributeName()Ljava.lang.String;</data>
+    </edge>
+    <edge id="e72" source="n62" target="n35">
+      <data key="key1">CHG ChangeMethod:com.univocity.parsers.annotations.helpers.TransformedHeader.getAttributeName()Ljava.lang.String;</data>
+    </edge>
+    <edge id="e73" source="n62" target="n39">
+      <data key="key1">CHG ChangeMethod:com.univocity.parsers.annotations.helpers.TransformedHeader.getAttributeName()Ljava.lang.String;</data>
+    </edge>
+    <edge id="e74" source="n62" target="n22">
+      <data key="key1">CHG ChangeMethod:com.univocity.parsers.annotations.helpers.TransformedHeader.getAttributeName()Ljava.lang.String;</data>
+    </edge>
+    <edge id="e75" source="n63" target="n46">
+      <data key="key1">CHG ChangeInvocation:com.univocity.parsers.annotations.helpers.AnnotationHelper.allFieldsIndexOrNameBased</data>
+    </edge>
+    <edge id="e76" source="n63" target="n7">
+      <data key="key1">CHG ChangeInvocation:com.univocity.parsers.annotations.helpers.AnnotationHelper.allFieldsIndexOrNameBased</data>
+    </edge>
+    <edge id="e77" source="n63" target="n6">
+      <data key="key1">CHG ChangeInvocation:com.univocity.parsers.annotations.helpers.AnnotationHelper.allFieldsIndexOrNameBased</data>
+    </edge>
+    <edge id="e78" source="n64" target="n44">
+      <data key="key1">CHG ChangeInvocation:com.univocity.parsers.annotations.helpers.AnnotationHelper.getSelectedIndexes</data>
+    </edge>
+    <edge id="e79" source="n64" target="n1">
+      <data key="key1">CHG ChangeInvocation:com.univocity.parsers.annotations.helpers.AnnotationHelper.getSelectedIndexes</data>
+    </edge>
+    <edge id="e80" source="n64" target="n10">
+      <data key="key1">CHG ChangeInvocation:com.univocity.parsers.annotations.helpers.AnnotationHelper.getSelectedIndexes</data>
+    </edge>
+    <edge id="e81" source="n65" target="n43">
+      <data key="key1">CHG ChangeInvocation:com.univocity.parsers.annotations.helpers.AnnotationHelper.getSelectedIndexes</data>
+    </edge>
+    <edge id="e82" source="n65" target="n11">
+      <data key="key1">CHG ChangeInvocation:com.univocity.parsers.annotations.helpers.AnnotationHelper.getSelectedIndexes</data>
+    </edge>
+    <edge id="e83" source="n66" target="n8">
+      <data key="key1">CHG RemoveReturnType:com.univocity.parsers.annotations.helpers.TransformedHeader.getHeaderIndex()I</data>
+    </edge>
+    <edge id="e84" source="n66" target="n8">
+      <data key="key1">CHG RemoveReturnType:com.univocity.parsers.annotations.helpers.TransformedHeader.getHeaderIndex()I</data>
+    </edge>
+    <edge id="e85" source="n66" target="n8">
+      <data key="key1">CHG RemoveReturnType:com.univocity.parsers.annotations.helpers.TransformedHeader.getHeaderIndex()I</data>
+    </edge>
+    <edge id="e86" source="n66" target="n8">
+      <data key="key1">CHG RemoveReturnType:com.univocity.parsers.annotations.helpers.TransformedHeader.getHeaderIndex()I</data>
+    </edge>
+    <edge id="e87" source="n67" target="n34">
+      <data key="key1">CHG ChangeInvocation:com.univocity.parsers.annotations.helpers.AnnotationHelper:getAttributeName</data>
+    </edge>
+    <edge id="e88" source="n67" target="n32">
+      <data key="key1">CHG ChangeInvocation:com.univocity.parsers.annotations.helpers.AnnotationHelper:getAttributeName</data>
+    </edge>
+
+  </graph>
+</graphml>

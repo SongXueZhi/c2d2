@@ -39758,6 +39758,16 @@ class Decomposer(object):
           for cid in _cids:
             for cit in cidts:
               matrix[cid][cit] =1
+        return matrix  
+      
+    def reset_dep_matrix(self,vp,matrix):
+        # 将对角线元素设置为0
+        matrix[matrix != 0] = 0.1
+        cid_dep_tbl = self._vp_cid_dep_tbl.get(vp, {})
+        for _cids,cidts in cid_dep_tbl.items():
+          for cid in _cids:
+            for cit in cidts:
+              matrix[cid][cit] =1
         return matrix      
       
     def regroup_by_file(self, vp, _cids, by_dep=False):

@@ -39767,8 +39767,8 @@ class Decomposer(object):
         for _cids,cidts in cid_dep_tbl.items():
           for cid in _cids:
             for cit in cidts:
-              matrix[cid][cit] =1
-        return matrix      
+              if matrix[cid][cit] !=0:
+                matrix[cid][cit] =1    
       
     def regroup_by_file(self, vp, _cids, by_dep=False):
         return self.regroup(self._vp_file_group_tbl, self._vp_rev_file_group_tbl,

@@ -583,6 +583,7 @@ class DD:
         
         print(tabulate(matrix, tablefmt="fancy_grid", showindex=True, headers=list(range(len(c)))))    
         outcome = self.reldd(c,matrix=matrix)
+        print(f"cc{len(outcome)}")
 
         if self.debug_dd:
             logger.debug("dd({}, {}) = {}".format(self.pretty(c), repr(n), repr(outcome)))
@@ -669,16 +670,23 @@ class DD:
             idx2test = self.resolve_dependency(idx2test, retIdx, matrix=matrix, cpro=p)
             delIdx = self.getIdx2test(retIdx, idx2test)
             iscompile, dest_dir, uid,build_result = self.check_compile(idx2test,None,None,retIdx,matrix)
-            if not iscompile and not self.is_matrix_binary(matrix):                
-                iscompile, n_testIdx, dest_dir, uid = self.predict_vaild_Idx(idx2test=idx2test,
-                                                                             retIdx=retIdx, matrix=matrix, cpro=p,
-                                                                             histotal=hisCE, build_info=build_result)              
-                if not iscompile:                    
-                    dest_dir =None
-                    uid = None
-                else:
-                    idx2test = n_testIdx
-                    delIdx = self.getIdx2test(retIdx,idx2test) 
+            
+            try:
+                if not iscompile and not self.is_matrix_binary(matrix):                
+                    iscompile, n_testIdx, dest_dir, uid = self.predict_vaild_Idx(idx2test=idx2test,
+                                                                                retIdx=retIdx, matrix=matrix, cpro=p,
+                                                                                histotal=hisCE, build_info=build_result)              
+                    if not iscompile:                    
+                        dest_dir =None
+                        uid = None
+                    else:
+                        idx2test = n_testIdx
+                        delIdx = self.getIdx2test(retIdx,idx2test) 
+            except:
+                print("err")
+                dest_dir =None
+                uid = None
+            
             self.LAST_MATRIX_SCORE = self.caculate_matrix_score(matrix) 
             print(f"当前增益{self.LAST_MATRIX_SCORE}")                                                
             res = self.test(idx2test, dest_dir, uid)

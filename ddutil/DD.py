@@ -679,7 +679,7 @@ class DD:
                     if not iscompile:                    
                         dest_dir =None
                         uid = None
-                    else:
+                    if iscompile:
                         idx2test = n_testIdx
                         delIdx = self.getIdx2test(retIdx,idx2test) 
             except:

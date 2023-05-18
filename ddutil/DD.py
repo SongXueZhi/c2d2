@@ -255,6 +255,7 @@ class DD:
     ERR_GAIN =1
     Matirx_GAIN = 0    
     CE_DICT={}
+    REL_UPD=set()
     LAST_MATRIX_SCORE=0
 
     def __init__(self):
@@ -374,9 +375,9 @@ class DD:
         #     if cached_result == self.PASS:
         #         return self.PASS
             
-            cached_result = self.outcome_cache.lookup_subset(c)
-            if cached_result == self.FAIL:
-                return self.FAIL
+            # cached_result = self.outcome_cache.lookup_subset(c)
+            # if cached_result == self.FAIL:
+            #     return self.FAIL
 
 
         if self.debug_test:
@@ -611,22 +612,22 @@ class DD:
         res = 1 / (1 - tmplog)
         return res
 
-    def sample(self, p):
+    def sample(self,p):
         delset = []
-        idx = np.argsort(p)  # sort by probabilities and return index
+        idx = np.argsort(p) # sort by probabilities and return index
         k = 0
         tmp = 1
         last = -99999
         idxlist = list(idx)
         i = 0
         while i < len(p):
-            if p[idxlist[i]] == 0:
+            if p[idxlist[i]] == 0 :
                 k = k + 1
                 i = i + 1
                 continue
-            if not p[idxlist[i]] < 1:
+            if not p[idxlist[i]] < 1 :
                 break
-            for j in range(k, i + 1):
+            for j in range(k,i+1):
                 tmp *= (1 - p[idxlist[j]])
             tmp *= (i - k + 1)
             if tmp < last:
@@ -642,6 +643,28 @@ class DD:
     def testDone(self, p):
         return all(x >= 1 or x <= 0 for x in  p)
 
+    def sample_x(self,p:list,retIdx:list, test_count_map:dict):
+        kapa = random.randint(1, 11)
+        if kapa < 4:
+            sliced_map = {key: test_count_map[key] for key in retIdx}
+            sorted_keys = [k for k, v in sorted(sliced_map.items(), key=lambda x: x[1])]
+            idx = random.randint(1,len(retIdx)-1)
+            idx2test = sorted_keys[:idx]
+            delIdx = self.getIdx2test(retIdx, idx2test)
+            print("select by test_count_map") 
+        else:
+            delIdx = self.sample(p)
+            idx2test = self.getIdx2test(retIdx, delIdx) 
+        return idx2test,delIdx
+    
+    def put_test_count(self, idx2test, test_count_map):      
+        for num in idx2test:
+            if num in test_count_map:
+                test_count_map[num] += 1
+            else:
+                test_count_map[num] = 1
+
+
     def reldd(self, c, matrix: ndarray):
         print("Use RelDD")
         # assert self.test([]) == self.PASS #check wether F meet T
@@ -649,8 +672,10 @@ class DD:
         p = []
         his = set()
         hisCE = {}
+        test_count_map={}
         for idx in range(0, len(c)):  # initialize the probability for each element in the input sequence
             p.append(0.1)
+            test_count_map[idx] = 0
         last_p = []
         cc = 0
         i =0
@@ -658,38 +683,35 @@ class DD:
         last_test=retIdx
         is_e =True
         sm = self.is_matrix_binary(matrix)
+        random.seed(42)
         while not self.testDone(p):
             last_p = p[:]
-            kapa = random.randint(1, 10)
-            if kapa < 4:
-                idx2test = list(np.random.choice(retIdx,random.randint(1,len(retIdx)-1),replace=False))
-                delIdx = self.getIdx2test(retIdx,idx2test)
-            else:
-                delIdx = self.sample(p)
-                idx2test = self.getIdx2test(retIdx, delIdx)    
-            idx2test = self.resolve_dependency(idx2test, retIdx, matrix=matrix, cpro=p)
+            idx2test,delIdx = self.sample_x(p,retIdx,test_count_map)  
             delIdx = self.getIdx2test(retIdx, idx2test)
-            iscompile, dest_dir, uid,build_result = self.check_compile(idx2test,None,None,retIdx,matrix)
-            
+            addIdx=[]
+            iscompile, dest_dir, uid,build_result = self.check_compile(idx2test,None,None,retIdx,matrix)           
             try:
                 if not iscompile and not self.is_matrix_binary(matrix):                
-                    iscompile, n_testIdx, dest_dir, uid = self.predict_vaild_Idx(idx2test=idx2test,
+                    iscompile, n_testIdx,addIdx,dest_dir, uid = self.predict_vaild_Idx(idx2test=idx2test,
                                                                                 retIdx=retIdx, matrix=matrix, cpro=p,
                                                                                 histotal=hisCE, build_info=build_result)              
                     if not iscompile:                    
                         dest_dir =None
                         uid = None
                     if iscompile:
-                        idx2test = n_testIdx
-                        delIdx = self.getIdx2test(retIdx,idx2test) 
-            except:
-                print("err")
+                        if addIdx == None or len(addIdx) == 0 :
+                            delIdx = self.getIdx2test(retIdx,idx2test) 
+                            idx2test = n_testIdx
+
+            except Exception as e:
+                print(e)
                 dest_dir =None
                 uid = None
             
             self.LAST_MATRIX_SCORE = self.caculate_matrix_score(matrix) 
             print(f"当前增益{self.LAST_MATRIX_SCORE}")                                                
             res = self.test(idx2test, dest_dir, uid)
+            self.put_test_count(idx2test=idx2test,test_count_map=test_count_map)
             his.add(self.get_list_str(idx2test))
             if  res == self.FAIL:  # set probabilities of the deleted elements to 0
                 for set0 in range(0, len(p)):
@@ -716,11 +738,16 @@ class DD:
             print(tabulate(matrix, tablefmt="fancy_grid", showindex=True, headers=list(range(len(p)))))
             if (not sm) and self.is_matrix_binary(matrix):
                 self.reset(p,matrix)
+                self.REL_UPD.clear()
                 sm =True
         print("{}->{}->{}".format(len(his), len(self.CE_DICT), retIdx))
         return retIdx
     
     def updateMatrix(self, testIdx: list, delIdx: list, matrix: ndarray):
+        ss = f"{self.get_list_str(testIdx)}->{self.get_list_str(delIdx)}"
+        if ss in self.REL_UPD:
+            return
+        self.REL_UPD.add(ss)
         tmplog = 0.00
         for itemt in testIdx:
             for itemd in delIdx:
@@ -751,7 +778,8 @@ class DD:
     
     def reset(self,p,matrix):
         for i in range(len(p)):
-            p[i] = 0.25
+            if p[i]!=0:
+                p[i] = 0.1
         self.resetMatrix(matrix)
 
         
@@ -760,17 +788,23 @@ class DD:
                 
     def predict_vaild_Idx(self, idx2test, retIdx, matrix: ndarray, cpro: list, histotal: dict,build_info):
         print(f"{idx2test} 编译失败，尝试预测子集")
+
+        n_testIdx,addIdx = self.resolve_dependency(idx2test=idx2test,retIdx=retIdx,matrix=matrix,cpro=cpro)
+        is_compile, dtest_dir, uid,last_buildInfo = self.check_compile(n_testIdx, idx2test,build_info,retIdx,matrix) 
+        if is_compile :
+            return  is_compile,n_testIdx,addIdx,dtest_dir, uid     
+        
         is_compile =False
         if self.ERR_GAIN == 1:
             matrix_score = self.check_matrix_score(matrix);
             # 首先根据log来快速降维关系
-            is_compile,n_testIdx,dtest_dir, uid = self.gen_subset_by_err(matrix,idx2test[:],retIdx,build_info)
+            is_compile,n_testIdx,addIdx,dtest_dir, uid = self.gen_subset_by_err(matrix,idx2test[:],retIdx,build_info)
             if self.check_matrix_score(matrix) == matrix_score: #无增益，说明log的操作无效
                 self.ERR_GAIN =0
         if not is_compile:
         #如果增益为0， 则之后使用权重算法
-            is_compile,n_testIdx,dtest_dir, uid = self.gen_subset_by_matrix(matrix,idx2test[:],retIdx,build_info)  
-        return  is_compile,n_testIdx,dtest_dir, uid 
+            is_compile,n_testIdx,addIdx,dtest_dir, uid = self.gen_subset_by_matrix(matrix,idx2test[:],retIdx,build_info)  
+        return  is_compile,n_testIdx,addIdx,dtest_dir, uid 
     
     def check_matrix_score(self,matrix):
         num_zeros = np.count_nonzero(matrix == 0)
@@ -779,6 +813,7 @@ class DD:
     def check_compile(self,n_testIdx,last_testIdx,last_buildInfo,retIdx,matrix):
         err_key = self.get_list_str(n_testIdx)        
         if err_key in self.CE_DICT and self.CE_DICT[err_key]!=None:
+            self.updateMatrix(n_testIdx,self.getIdx2test(retIdx,n_testIdx),matrix)
             return False, None,None,self.CE_DICT[self.get_list_str(n_testIdx)][1]
         if self.outcome_cache.lookup(n_testIdx)!=None:
             return True,None,None,None
@@ -815,11 +850,13 @@ class DD:
             is_compile, dtest_dir, uid,last_buildInfo = self.check_compile(n_testIdx, last_testIdx,last_buildInfo,retIdx,matrix)            
             last_testIdx = n_testIdx
             if is_compile:
-                return  is_compile,n_testIdx,dtest_dir, uid       
+                addIdx = self.getIdx2test(n_testIdx,testIdx)
+                return  is_compile,n_testIdx,addIdx, dtest_dir, uid       
         print("通过log进行删除")
         #2. 尝试删除元素
         last_testIdx = testIdx[:]
         last_buildInfo = copy.deepcopy(build_info)
+        addIdx=[]
         while not is_compile:
             n_testIdx = list(set(last_testIdx)-set(last_buildInfo.rcids))
             if len(n_testIdx) == len(last_testIdx) or  len(n_testIdx) == len(retIdx) or len(n_testIdx) == 0: #不在能获取新的ADD,或者全集了结束
@@ -827,8 +864,8 @@ class DD:
             is_compile, dtest_dir, uid,last_buildInfo = self.check_compile(n_testIdx, last_testIdx,last_buildInfo,retIdx,matrix)            
             last_testIdx = n_testIdx
             if is_compile:
-                return  is_compile,n_testIdx,dtest_dir, uid   
-        return False,None,None,None
+                return  is_compile,n_testIdx,addIdx, dtest_dir, uid   
+        return False,addIdx,None,None,None
     
     
     def gen_subset_by_matrix(self,matrix,testIdx,retIdx,build_info):
@@ -842,7 +879,8 @@ class DD:
         while not is_compile:
             if len(his)> min(3000,len(his)>2**len(delIdx)):
                 break
-            n_testIdx = self.gen_ADDset_from_matrix(matrix,testIdx,retIdx,last_buildInfo.rcids)
+            addIdx = self.gen_ADDset_from_matrix(matrix,testIdx,retIdx,last_buildInfo.rcids)
+            n_testIdx = list(set(testIdx) | set(addIdx))
             if n_testIdx == None:
                 break
             is_compile, dtest_dir, uid,last_buildInfo = self.check_compile(n_testIdx, testIdx,last_buildInfo,retIdx,matrix)
@@ -855,13 +893,14 @@ class DD:
             if i> 100:
                break          
             if is_compile:
-                return  is_compile,n_testIdx,dtest_dir, uid
+                return  is_compile,n_testIdx,addIdx,dtest_dir, uid
         
         print("通过matrix进行减少")         
         last_buildInfo = copy.deepcopy(build_info)
         his=set() 
         last_m_score =0.000  
         i =0   
+        addIdx=[]
         while not is_compile:    
             if len(his)> min(3000,len(his)>2**len(delIdx)):
                 break
@@ -877,8 +916,8 @@ class DD:
                 break
             is_compile, dtest_dir, uid,last_buildInfo = self.check_compile(n_testIdx, testIdx,last_buildInfo,retIdx,matrix)
             if is_compile: 
-                return  is_compile,n_testIdx,dtest_dir, uid     
-        return False,None,None,None
+                return  is_compile, n_testIdx,addIdx,dtest_dir, uid     
+        return False,None,addIdx,None,None
     
     def caculate_matrix_score(self,matrix1):
         nz1 = np.count_nonzero(matrix1)
@@ -924,7 +963,7 @@ class DD:
 
         add_idx = self.weight_select(del_add_weights,delIdx)
 
-        return list(set(testIdx) | set(add_idx))   
+        return list(set(add_idx))
        
     def weight_select(self,weights,delIdx):
         result=[]
@@ -963,19 +1002,10 @@ class DD:
     def get_list_str(self, t: list):
         if len(t) == 0:
             return ''
+        t= list(t)
         t.sort()
         return ''.join(str(i)+'+' for i in t)       
-        
-    def add_dependency_Idx(self, idx2test, retIdx, matrix: ndarray,cpro,cids):
-        delIdx = self.getIdx2test(retIdx,idx2test)
-        add_dep_from_log = list((set(cids) - set(idx2test)) & set(delIdx))
-        print(f"log{add_dep_from_log}")
-        #计算matrix 里每一个需要添加的元素的权重
-        del_weights = [self.weighted_mean_column(matrix,wlist) for wlist in delIdx]
-        #根据get_dep作选择    
-        n_testIdx = list(set(idx2test) |set(self.get_dep_by_union(add_dep_from_log=add_dep_from_log,delIdx=delIdx,weights=del_weights)))
-        n_testIdx = self.resolve_dependency(idx2test=n_testIdx,retIdx=retIdx,matrix=matrix,cpro=cpro)
-        return n_testIdx
+
     def add_dependency_Idx_back(self, idx2test, delIdx, matrix: ndarray):
         result = idx2test[:]
         tmp =[]
@@ -1043,27 +1073,36 @@ class DD:
         
     def resolve_dependency(self, idx2test: list, retIdx: list, matrix, cpro: list):
         cp = idx2test[:]
+        add=[]
+        for item in cp:
+            for i in range(0, len(cpro)):
+                if matrix[item][i] == 1:
+                    if (i not in cp) and (i not in add) and (i in retIdx):
+                        add.append(i)
+                    cpro[i] = cpro[item]
         #ADD
         while True:
-            old_result =cp[:]
-            for item in cp:
+            old_add =add[:]
+            for item in add:
                 for i in range(0, len(cpro)):
                     if matrix[item][i] == 1:
-                        if i not in cp:
-                            cp.append(i)
+                        if (i not in add) and (i not in cp) and (i in retIdx):
+                            add.append(i)
                         cpro[i] = cpro[item]
-            cp = list(set(cp))            
-            for item in cp:
+            add = list(set(add))            
+            for item in add:
                 for i in range(0, len(cpro)):
                     if matrix[item][i] == 1:
-                        if i not in cp:
-                            cp.append(i)
+                        if (i not in cp) and (i not in cp) and (i in retIdx):
+                            add.append(i)
                         cpro[i] = cpro[item]
-            cp = list(set(cp))             
-            if len(set(cp)) == len(set(old_result)):
+            add = list(set(add))             
+            if len(set(add)) == len(set(add)):
                 break                       
         #Remove                        
-        if len(set(cp)) == len(set(retIdx)):
+        if len(set(cp))+len(set(add)) == len(set(retIdx)) or len(set(add)) == 0 :
+            add=[]
+            print("delete resolve")
             while True:
                 old_result =cp[:]
                 for item in cp:
@@ -1081,7 +1120,7 @@ class DD:
                 if len(set(cp)) == len(set(old_result)):
                     break             
          
-        return list(cp)
+        return list(cp),list(add)
     
     def _dd(self, c, n):
         """Stub to overload in subclasses"""

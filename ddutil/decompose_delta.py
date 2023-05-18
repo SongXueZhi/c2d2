@@ -38182,7 +38182,7 @@ class Decomposer(object):
 
 
     def decompose(self, use_syn=True, use_ref=True, use_other=True, outfile="graph.xml", staged=False,
-                  shuffle=0, optout=True):
+                  shuffle=0, optout=False):
         qtbl = dict([(n, eval(self.make_query_id(n))) for n in QUERY_TBL.get(self._lang, [])])
         for n in QUERY_LIST:
             qtbl[n] = eval(make_query_id(n))
@@ -38926,7 +38926,6 @@ class Decomposer(object):
                     #logger.debug('%s (%d)' % (ref, len(hs)))
                     for h in hs:
                         self._ref_hunks.add(h)
-
 
         if use_other:
             # coupling by other changes

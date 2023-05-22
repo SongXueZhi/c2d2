@@ -44,6 +44,7 @@
 
 import logging
 import numpy as np
+import math
 from conf import DATA_FILE
 
 logger = logging.getLogger()
@@ -635,10 +636,11 @@ class DD:
 
     def computRatio(self, deleteconfig, p) -> float:
         res = 0
-        tmplog = 1
+        tmplog = 0.0
         for delc in deleteconfig:
-            if p[delc] > 0 and p[delc] < 1:
-                tmplog *= (1 - p[delc])
+            if 0 < p[delc] < 1:
+                tmplog += math.log(1 - p[delc])
+        tmplog = math.exp(tmplog)
         res = 1 / (1 - tmplog)
         return res
 
@@ -691,12 +693,12 @@ class DD:
             idx2test = self.getIdx2test(c, delIdx)
 
             res = self.test(idx2test)
-            if (res != self.FAIL):
-                (t, csub) = self.test_mix_prodd(idx2test, c)
-                if (t == self.FAIL):
-                    res = t
-                    idx2test = csub
-                    delIdx = self.getIdx2test(c, idx2test)
+            # if (res != self.FAIL):
+            #     (t, csub) = self.test_mix_prodd(idx2test, c)
+            #     if (t == self.FAIL):
+            #         res = t
+            #         idx2test = csub
+            #         delIdx = self.getIdx2test(c, idx2test)
 
             if res == self.FAIL:  # set probabilities of the deleted elements to 0
                 for set0 in range(0, len(p)):
@@ -704,10 +706,11 @@ class DD:
                         p[set0] = 0
                 c = idx2test
             else:  # test(seq2test, *test_args) == PASS:
+                p_cp = p[:]
                 for setd in range(0, len(p)):
-                    if setd in delIdx and p[setd] != 0 and p[setd] != 1:
-                        delta = (self.computRatio(delIdx, p) - 1) * p[setd]
-                        p[setd] = p[setd] + delta
+                    if setd in delIdx and 0 < p[setd] < 1:
+                        delta = (self.computRatio(delIdx, p_cp) - 1) * p_cp[setd]
+                        p[setd] = p_cp[setd] + delta
             run = run + 1
             write_data("p: " + repr(p) + "\n")
 

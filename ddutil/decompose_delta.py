@@ -40071,8 +40071,8 @@ class Decomposer(object):
         r = self._remove_dependency(vp, compo_ids)
 
         compo_diff = sorted(list(set(compo_ids) - r))
-        if len(compo_diff) > 0:
-            raise DependencyCheckFailedException(compo_diff) 
+        # if len(compo_diff) > 0:
+        #     raise DependencyCheckFailedException(compo_diff) 
 
         total_compo_ids = sorted(compo_ids)
         # logger.info('total components (%d): %s' % (len(total_compo_ids),

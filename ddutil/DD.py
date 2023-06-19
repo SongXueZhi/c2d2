@@ -235,7 +235,7 @@ class DD:
 
 
     # Test outcomes.
-    PASS       = "FAL"
+    PASS       = "FAIL"
     FAIL       = "PASS"
     UNRESOLVED = "UNRESOLVED"
     CE = "CE"
@@ -357,7 +357,7 @@ class DD:
 
 
     # Testing
-    def test(self, c,dest_dir,uid):
+    def test(self, c,dest_dir = None,uid =None):
         """Test the configuration C.  Return PASS, FAIL, or UNRESOLVED"""
         c.sort(key=str)
 
@@ -533,36 +533,8 @@ class DD:
 
 
     def test_mix(self, csub, c, direction):
-        if self.minimize:
-            (t, csub) = self.test_and_resolve(csub, [], c, direction)
-            if t == self.FAIL:
-                return (t, csub)
-
-
-        if self.maximize:
-            csubbar = self.__listminus(self.CC, csub)
-            cbar    = self.__listminus(self.CC, c)
-            if direction == self.ADD:
-                directionbar = self.REMOVE
-            else:
-                directionbar = self.ADD
-
-
-            (tbar, csubbar) = self.test_and_resolve(csubbar, [], cbar,
-                                                    directionbar)
-
-
-            csub = self.__listminus(self.CC, csubbar)
-
-
-            if tbar == self.PASS:
-                t = self.FAIL
-            elif tbar == self.FAIL:
-                t = self.PASS
-            else:
-                t = self.UNRESOLVED
-
-
+        csubr = self.resolve(csubr, c, direction)
+        t = self.test(csubr)
         return (t, csub)
 
 
@@ -583,7 +555,8 @@ class DD:
         self.set_tokens2hunks(cids=c)
         
         print(tabulate(matrix, tablefmt="fancy_grid", showindex=True, headers=list(range(len(c)))))    
-        outcome = self.reldd(c,matrix=matrix)
+        outcome = self.reldd(c,matrix)
+        # outcome = self._prodd(c)
         print(f"cc{len(outcome)}")
 
         if self.debug_dd:
@@ -644,17 +617,17 @@ class DD:
         return all(x >= 1 or x <= 0 for x in  p)
 
     def sample_x(self,p:list,retIdx:list, test_count_map:dict):
-        kapa = random.randint(1, 11)
-        if kapa < 4:
-            sliced_map = {key: test_count_map[key] for key in retIdx}
-            sorted_keys = [k for k, v in sorted(sliced_map.items(), key=lambda x: x[1])]
-            idx = random.randint(1,len(retIdx)-1)
-            idx2test = sorted_keys[:idx]
-            delIdx = self.getIdx2test(retIdx, idx2test)
-            print("select by test_count_map") 
-        else:
-            delIdx = self.sample(p)
-            idx2test = self.getIdx2test(retIdx, delIdx) 
+        # kapa = random.randint(1, 11)
+        # if kapa < 3:
+        #     sliced_map = {key: test_count_map[key] for key in retIdx}
+        #     sorted_keys = [k for k, v in sorted(sliced_map.items(), key=lambda x: x[1])]
+        #     idx = random.randint(1,len(retIdx)-1)
+        #     idx2test = sorted_keys[:idx]
+        #     delIdx = self.getIdx2test(retIdx, idx2test)
+        #     print("select by test_count_map") 
+        # else:
+        delIdx = self.sample(p)
+        idx2test = self.getIdx2test(retIdx, delIdx) 
         return idx2test,delIdx
     
     def put_test_count(self, idx2test, test_count_map):      
@@ -664,6 +637,47 @@ class DD:
             else:
                 test_count_map[num] = 1
 
+    def test_mix_prodd(self, csub, c):
+        (t, csub) = self.test_and_resolve(csub, [], c, self.ADD)
+        if t != self.UNRESOLVED:
+            return (t, csub)
+        else:
+            (t, csub) = self.test_and_resolve(csub, [], c, self.REMOVE)
+        return (t, csub)
+
+
+    def _prodd(self, c):
+        print("Use ProbDD")
+        assert self.test([]) == self.PASS  # check whether F meet T
+        run = 1
+        p = []
+        for idx in range(0, len(c)):  # initialize the probability for each element in the input sequence
+            p.append(0.1)
+        while not self.testDone(p):
+
+            delIdx = self.sample(p)
+            if len(delIdx) == 0:
+                break
+            idx2test = self.getIdx2test(c, delIdx)
+            res = self.test(idx2test)
+
+            if res == self.FAIL:  # set probabilities of the deleted elements to 0
+                for set0 in range(0, len(p)):
+                    if set0 not in idx2test:
+                        p[set0] = 0
+                c = idx2test
+            else:  # test(seq2test, *test_args) == PASS:
+                p_cp = p[:]
+                for setd in range(0, len(p)):
+                    if setd in delIdx and 0 < p[setd] < 1:
+                        delta = (self.computRatio(delIdx, p_cp) - 1) * p_cp[setd]
+                        p[setd] = p_cp[setd] + delta
+            run = run + 1
+        #     write_data("p: " + repr(p) + "\n")
+            print(f"{idx2test}:{res}")
+            print("p: " + repr(p))
+        # write_data('loop time: {}\n'.format(run))
+        return c
 
     def reldd(self, c, matrix: ndarray):
         print("Use RelDD")
@@ -684,33 +698,48 @@ class DD:
         is_e =True
         sm = self.is_matrix_binary(matrix)
         random.seed(42)
-        while not self.testDone(p):
+        while (not self.testDone(p)) and len(retIdx) !=1:
             last_p = p[:]
             idx2test,delIdx = self.sample_x(p,retIdx,test_count_map)  
             delIdx = self.getIdx2test(retIdx, idx2test)
             addIdx=[]
-            iscompile, dest_dir, uid,build_result = self.check_compile(idx2test,None,None,retIdx,matrix)           
-            try:
-                if not iscompile and not self.is_matrix_binary(matrix):                
-                    iscompile, n_testIdx,addIdx,dest_dir, uid = self.predict_vaild_Idx(idx2test=idx2test,
-                                                                                retIdx=retIdx, matrix=matrix, cpro=p,
-                                                                                histotal=hisCE, build_info=build_result)              
-                    if not iscompile:                    
+            iscompile, dest_dir, uid,build_result = self.check_compile(idx2test,None,None,retIdx,matrix)
+            if  not iscompile:
+                (t,cubs)  = self.test_mix_prodd(idx2test,retIdx)
+                if t != self.UNRESOLVED:
+                    idx2test =cubs
+                    res = t
+                    delIdx = self.getIdx2test(retIdx,idx2test)
+                else:         
+                    try:
+                        if not self.is_matrix_binary(matrix):                
+                            iscompile, n_testIdx,addIdx,dest_dir, uid = self.predict_vaild_Idx(idx2test=idx2test,
+                                                                                        retIdx=retIdx, matrix=matrix, cpro=p,
+                                                                                        histotal=hisCE, build_info=build_result)              
+                            if not iscompile:                    
+                                dest_dir =None
+                                uid = None
+                            if iscompile:
+                                if addIdx == None or len(addIdx) == 0 :
+                                    delIdx = self.getIdx2test(retIdx,idx2test) 
+                                    idx2test = n_testIdx
+
+                    except Exception as e:
+                        print(e)
                         dest_dir =None
                         uid = None
-                    if iscompile:
-                        if addIdx == None or len(addIdx) == 0 :
-                            delIdx = self.getIdx2test(retIdx,idx2test) 
-                            idx2test = n_testIdx
-
-            except Exception as e:
-                print(e)
-                dest_dir =None
-                uid = None
             
             self.LAST_MATRIX_SCORE = self.caculate_matrix_score(matrix) 
             print(f"当前增益{self.LAST_MATRIX_SCORE}")                                                
             res = self.test(idx2test, dest_dir, uid)
+            res_b = self.test(delIdx)
+            temp = idx2test[:]
+            if len(idx2test)!=0 and res_b == self.FAIL:
+                idx2test = delIdx
+                delIdx = temp
+                res = res_b
+                print(f"buji{idx2test}:{res_b}")
+
             self.put_test_count(idx2test=idx2test,test_count_map=test_count_map)
             his.add(self.get_list_str(idx2test))
             if  res == self.FAIL:  # set probabilities of the deleted elements to 0
@@ -719,9 +748,7 @@ class DD:
                         p[set0] = 0
                         for index in range(0, len(matrix)):
                             matrix[index][set0] = 0.0
-                            matrix[set0][index] = 0.0
-                if len(idx2test) < len(retIdx):
-                    self.reset(p,matrix)            
+                            matrix[set0][index] = 0.0      
                 retIdx = idx2test
             else:  # test(seq2test, *test_args) == PASS:
                 p_cp = p[:]
@@ -736,10 +763,10 @@ class DD:
             print('{}:{}'.format(idx2test, res))
             print(p)
             print(tabulate(matrix, tablefmt="fancy_grid", showindex=True, headers=list(range(len(p)))))
-            if (not sm) and self.is_matrix_binary(matrix):
-                self.reset(p,matrix)
-                self.REL_UPD.clear()
-                sm =True
+            # if (not sm) and self.is_matrix_binary(matrix):
+            #     self.reset(p,matrix)
+            #     self.REL_UPD.clear()
+            #     sm =True
         print("{}->{}->{}".format(len(his), len(self.CE_DICT), retIdx))
         return retIdx
     
@@ -788,14 +815,8 @@ class DD:
                 
     def predict_vaild_Idx(self, idx2test, retIdx, matrix: ndarray, cpro: list, histotal: dict,build_info):
         print(f"{idx2test} 编译失败，尝试预测子集")
-
-        n_testIdx,addIdx = self.resolve_dependency(idx2test=idx2test,retIdx=retIdx,matrix=matrix,cpro=cpro)
-        is_compile, dtest_dir, uid,last_buildInfo = self.check_compile(n_testIdx, idx2test,build_info,retIdx,matrix) 
-        if is_compile :
-            return  is_compile,n_testIdx,addIdx,dtest_dir, uid     
-        
         is_compile =False
-        if self.ERR_GAIN == 1:
+        if self.ERR_GAIN == 1 and len(build_info.rcids)>0 :
             matrix_score = self.check_matrix_score(matrix);
             # 首先根据log来快速降维关系
             is_compile,n_testIdx,addIdx,dtest_dir, uid = self.gen_subset_by_err(matrix,idx2test[:],retIdx,build_info)
@@ -886,10 +907,7 @@ class DD:
             is_compile, dtest_dir, uid,last_buildInfo = self.check_compile(n_testIdx, testIdx,last_buildInfo,retIdx,matrix)
             
             now_score = self.caculate_matrix_score(matrix)
-            if now_score == self.LAST_MATRIX_SCORE:
-                i+=1
-            else:
-                self.LAST_MATRIX_SCORE =now_score
+            i+=1
             if i> 100:
                break          
             if is_compile:
@@ -1108,13 +1126,13 @@ class DD:
                 for item in cp:
                     for i in range(0, len(cpro)):
                         if matrix[item][i] == 1:
-                            if i not in idx2test and item in cp :
+                            if item in cp :
                                 cp.remove(item)
                 cp = list(set(cp))            
                 for item in cp:
                     for i in range(0, len(cpro)):
                         if matrix[item][i] == 1:
-                            if i not in idx2test and item in cp:
+                            if item in cp:
                                 cp.remove(item)
                 cp = list(set(cp))                                            
                 if len(set(cp)) == len(set(old_result)):

@@ -34,7 +34,7 @@ from conf import CCA_SCRIPTS_DIR, VIRTUOSO_PW, VIRTUOSO_PORT
 from decompose_delta import K_DEL, K_INS, K_REL, Decomposer, Hunk, add_vp_suffix, vp_to_str, set_tbl_add, getnum, isgid
 from decompose_delta import DependencyCheckFailedException
 from decompose_delta import MAX_STMT_LEVEL, MODIFIED_STMT_RATE_THRESH
-from DD import DD
+from DD import DD, write_data
 import javalang
 
 sys.path.append(CCA_SCRIPTS_DIR)
@@ -62,13 +62,15 @@ TEST_SCRIPT  = 'test'
 
 A_DD    = 'dd'
 A_DDMIN = 'ddmin'
+A_PRODD = "prodd"
+A_RELDD = "reldd"
 
 class HunkCode(object):
     def __init__(self,hunk,code_0,code_1) -> None:
         self.hunk = hunk
         self.code_0 = code_0
         self.code_1 = code_1
-        
+
 class BuildResult(object):
     def __init__(self,err_set,rcids) -> None:
         self.err_set = err_set
@@ -178,6 +180,7 @@ class JavaDD(DD, object):
     def show_status(self, run, cs, n):
         mes = 'dd (run #{}): trying {}'.format(run, '+'.join([str(len(cs[i])) for i in range(n)]))
         self.set_status(mes)
+        write_data(mes + "\n")
 
     def get_max_stmt_level(self):
         return self._decomp.get_max_stmt_level(*self._vp)
@@ -269,15 +272,15 @@ class JavaDD(DD, object):
 
     def has_grp(self, xs):
         return len(list(filter(isgid, xs))) > 0
-    
+
     def set_tokens2hunks(self,cids):
         for idx in cids:
             self.hunks_token_tbl[idx] =set()
             hunks = self._decomp.get_compo_hunks(self._vp, idx)
             for hunk in hunks:
-                self.hunks_token_tbl[idx].update(self.parse_hunk_to_tokens(hunk))      
+                self.hunks_token_tbl[idx].update(self.parse_hunk_to_tokens(hunk))
         print(self.hunks_token_tbl)
-        
+
     def parse_hunk_to_tokens(self,hunk:Hunk):
         result=set()
         rt = hunk.root
@@ -289,19 +292,19 @@ class JavaDD(DD, object):
         elif(kd == K_DEL):
             result.update(self.parse_hunk_from_new(hunk))
         elif(kd == K_REL):
-            result.update(self.parse_hunk_from_old(hunk)) 
+            result.update(self.parse_hunk_from_old(hunk))
             result.update(self.parse_hunk_from_new(hunk))
         else:
             result.update(self.parse_hunk_from_new(hunk))
-        return result             
-    
+        return result
+
     def parse_hunk_from_old(self,hunk):
         rt = hunk.root
         #read token in work
         file_name2 =os.path.join(self._src_dir,get_localname(self._vp[1]),hunk.get_loc_())
         with open(file_name2,'r') as file2:
             content2 = file2.read()
-    
+
         # Get the tokens in the specified range
         start_pos1 = javalang.tokenizer.Position(rt.sl_, rt.sc_)
         end_pos1 = javalang.tokenizer.Position(rt.el_, rt.ec_)
@@ -309,26 +312,27 @@ class JavaDD(DD, object):
         hunk_content2 = javalang.tokenizer.tokenize(content2)
         tokens2_in_range = [t.value for t in hunk_content2 if start_pos1 <= t.position < end_pos1 and type(t) == javalang.tokenizer.Identifier]
         return tokens2_in_range
-    
+
     def parse_hunk_from_new(self,hunk):
         rt = hunk.root
-        #read token in bic 
-        file_name1 = os.path.join(self._src_dir,get_localname(self._vp[0]),hunk.get_loc())  
+        #read token in bic
+        file_name1 = os.path.join(self._src_dir,get_localname(self._vp[0]),hunk.get_loc())
         with open(file_name1,'r') as file1:
             content1 = file1.read()
         # Get the tokens in the specified range
         start_pos = javalang.tokenizer.Position(rt.sl, rt.sc)
         end_pos = javalang.tokenizer.Position(rt.el, rt.ec)
-        
+
         print(f'{rt.sl}:{rt.sc}-{rt.el}:{rt.ec} {file_name1}')
-        
+
         hunk_content1 = javalang.tokenizer.tokenize(content1)
-        tokens1_in_range = [t.value for t in hunk_content1 if start_pos <= t.position < end_pos and t.value.isalpha() and type(t) == javalang.tokenizer.Identifier ]  
-        return tokens1_in_range  
+        tokens1_in_range = [t.value for t in hunk_content1 if start_pos <= t.position < end_pos and t.value.isalpha() and type(t) == javalang.tokenizer.Identifier ]
+        return tokens1_in_range
 
     def show_hunks(self, xs):
         cids = self.ungroup(xs)
         logger.info('ungrouped components (%d): %s' % (len(cids), cids))
+        write_data('ungrouped components (%d): %s\n' % (len(cids), cids))
         tbl = {}
         ctbl = {}
 
@@ -353,6 +357,7 @@ class JavaDD(DD, object):
 
         for (loc, hs) in tbl.items():
             print('*** %s' % loc)
+            write_data('*** %s\n' % loc)
             l = list(hs)
             l.sort()
             for h in l:
@@ -361,6 +366,7 @@ class JavaDD(DD, object):
                 if cid not in deps:
                     mark = '*'
                 print('  [%s%s] %s' % (cid, mark, h))
+                write_data('  [%s%s] %s\n' % (cid, mark, h))
 
     def set_original_dir(self, ver):
         self._original_dir = os.path.join(self._src_dir, ver)
@@ -374,7 +380,7 @@ class JavaDD(DD, object):
     def get_optout_compo_ids(self, vp):
         return self._decomp.get_optout_compo_ids(vp)
 
-            
+
     def do_build(self, path):
         try:
             if self._build_script == None:
@@ -382,16 +388,16 @@ class JavaDD(DD, object):
                     result = subprocess.run(['./'+self._build_script_name],cwd=path,capture_output=True, text=True, check=True)
             else:
                 result = subprocess.run([self._build_script],cwd=path, capture_output=True, text=True, check=True)
-            return 0,None    
+            return 0,None
         except subprocess.CalledProcessError as e:
             output = e.output
             print("Compilation failed.")
             return 1,output
-    
+
     def error_to_hunk(self,VO_list):
         for item in VO_list:
             print()
-            
+
 
     def do_test (self, path):
         if self._test_script == None:
@@ -465,11 +471,13 @@ class JavaDD(DD, object):
         if True:#len(csub) > len(c) / 4:
             if direction == DD.ADD:
                 logger.info('dir=ADD')
+                write_data('dir=ADD')
                 result = self._decomp.add_dependency_g(self._vp, csub)
             elif direction == DD.REMOVE:
                 logger.info('dir=REMOVE')
+                write_data('dir=REMOVE')
                 result = self._decomp.remove_dependency_g(self._vp, csub)
-
+        write_data(" " + repr(result) + "\n")
         return result
 
     def add_dependency(self, c):
@@ -504,9 +512,9 @@ class JavaDD(DD, object):
         n = len(cids)
         logger.info('components (%d): %s' % (n, cids))
         return n
-    
+
     def _build(self,c, uid=None, ignore_ref=False, keep_variant=False):
-        
+
         if uid == None:
             uid = str(uuid4())
 
@@ -595,9 +603,9 @@ class JavaDD(DD, object):
                     shutil.rmtree(dest_dir)
                 except Exception as e:
                     logger.warning('%s' % e)
-            
+
             return False,None,None,build_info
-        
+
         return True, dest_dir,uid,None
 
     def _parse_err_message(self,err_message:str):
@@ -615,11 +623,11 @@ class JavaDD(DD, object):
                     if item[0] is not None and isinstance(item[0]  , int) and item[1]  is not None and isinstance(item[1] , int):
                         content_line = content_lines[item[0]-1]
                         tokens = javalang.tokenizer.tokenize(content_line)
-                        content = next((t for t in tokens if t.position.column == item[1]), None)                              
+                        content = next((t for t in tokens if t.position.column == item[1]), None)
                     else:
                         file_name = os.path.basename(key)  # 获取文件名，包括扩展名
                         content = os.path.splitext(file_name)[0]  # 去除扩展名，提取类名
-                    contents.add(content)           
+                    contents.add(content)
         for (v,o) in err_list:
             if o['name'] is not None:
                 contents.add(o['name'].split('(')[0].strip())
@@ -628,31 +636,31 @@ class JavaDD(DD, object):
             err_set.add(f"{v['loc']}_{v['line']}_{v['column']}")
         for cid, tokens in self.hunks_token_tbl.items():
             if tokens.intersection(contents):
-                result.append(cid)  
+                result.append(cid)
         return BuildResult(err_set,list(set(result)))
-                
+
     def get_err_file_dict(self, err_list):
         err_file_tbl={}
         for (v,o) in err_list:
             if v['loc'] not in err_file_tbl:
                 err_file_tbl[v['loc']]=list()
-            err_file_tbl[v['loc']].append((v['line'],v['column']))                
-        return err_file_tbl      
-           
+            err_file_tbl[v['loc']].append((v['line'],v['column']))
+        return err_file_tbl
+
     def _test(self,c:list,dest_dir,uid,keep_variant=False):
         is_compile =True
         if uid == None or dest_dir == None:
             is_compile = False
             is_compile, dest_dir, uid, build_info = self._build(c)
         # test application
-        
+
         if not is_compile:
             return DD.UNRESOLVED
-            
+
         logger.info('testing %s...' % uid)
 
         result = self.do_test(dest_dir)
-        
+
         logger.info('%s (size=%d) -> %s' % (uid, len(c), result))
 
         if result == DD.FAIL:
@@ -690,10 +698,36 @@ class JavaDD(DD, object):
 
     def _get_dep_matrix(self):
         return self._decomp.get_dep_matrix(self._vp)
-    
+
     def resetMatrix(self,matrix):
         self._decomp.reset_dep_matrix(self._vp,matrix)
-        
+
+    def do_reldd(self, c, stage=1, prefix=''):
+        c_min = c
+        if len(c) > 1:
+            c_min = self.reldd(c)
+            c_min.sort(key=getnum)
+
+        c_min_len_ = len(self.ungroup(c_min))
+        self.set_status('STAGE{}: The 1-minimal failure-inducing changes ({}({}) components)'.format(stage,
+                                                                                                     len(c_min),
+                                                                                                     c_min_len_))
+        print(c_min)
+        self.show_hunks(c_min)
+
+        suffix = str(stage)
+
+        # min_res = self._test(c_min,
+        #                      uid=add_vp_suffix(prefix+'minimal'+suffix, self._vp),
+        #                      keep_variant=True)
+
+        r = DDResult(algo=A_RELDD)
+        r.inp = c
+        r.minimal_result = c_min
+        r.cids_minimal = c_min
+
+        return r
+
     def do_ddmin(self, c, stage=1, prefix=''):
         c_min = c
         if len(c) > 1:
@@ -710,10 +744,36 @@ class JavaDD(DD, object):
         suffix = str(stage)
 
         # min_res = self._test(c_min,
-        #                      uid=add_vp_suffix(prefix+'minimal'+suffix, self._vp),
+        #                      uid=add_vp_suffix(prefix + 'minimal' + suffix, self._vp),
         #                      keep_variant=True)
 
         r = DDResult(algo=A_DDMIN)
+        r.inp = c
+        r.minimal_result = c_min
+        r.cids_minimal = c_min
+
+        return r
+
+    def do_prodd(self, c, stage=1, prefix=''):
+        c_min = c
+        if len(c) > 1:
+            c_min = self.prodd(c)
+            c_min.sort(key=getnum)
+
+        c_min_len_ = len(self.ungroup(c_min))
+        self.set_status('STAGE{}: The 1-minimal failure-inducing changes ({}({}) components)'.format(stage,
+                                                                                                     len(c_min),
+                                                                                                     c_min_len_))
+        print(c_min)
+        self.show_hunks(c_min)
+
+        suffix = str(stage)
+
+        # min_res = self._test(c_min,
+        #                      uid=add_vp_suffix(prefix + 'minimal' + suffix, self._vp),
+        #                      keep_variant=True)
+
+        r = DDResult(algo=A_PRODD)
         r.inp = c
         r.minimal_result = c_min
         r.cids_minimal = c_min
@@ -798,6 +858,7 @@ class JavaDD(DD, object):
 
             self._stage += 1
             algo = staging.get_algo()
+            write_data('algo: {}\n'.format(algo))
 
             self.set_status('STAGE{}: {} in progress...'.format(self._stage, algo))
             print('cids=%s' % cids)
@@ -810,6 +871,12 @@ class JavaDD(DD, object):
 
                 elif algo == A_DD:
                     r = self.do_dd(cids, stage=self._stage, prefix=prefix)
+
+                elif algo == A_PRODD:
+                    r = self.do_prodd(cids, stage=self._stage, prefix=prefix)
+
+                elif algo == A_RELDD:
+                    r = self.do_reldd(cids, stage=self._stage, prefix=prefix)
 
                 if self._patch_count > 0:
                     sc = self._patch_count - self._patch_failure_count
@@ -1189,6 +1256,7 @@ def run(algo, proj_id, working_dir, conf=None, src_dir=None, vers=None,
         c_ungrouped = jdd.ungroup(c)
         c_ungrouped.sort(key=getnum)
         print('ungrouped (%d): %s' % (len(c_ungrouped), c_ungrouped))
+        write_data('ungrouped (%d): %s\n' % (len(c_ungrouped), c_ungrouped))
 
         set_status('delta decomposed into {}({}) components'.format(len(c), len(c_ungrouped)))
 
@@ -1261,8 +1329,8 @@ def run(algo, proj_id, working_dir, conf=None, src_dir=None, vers=None,
                 break
     return ok
 
-    
- 
+
+
 def main():
 
     from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
@@ -1313,7 +1381,7 @@ def main():
     parser.add_argument('-k', '--keep-going', dest='keep_going', action='store_true',
                         help='continue despite failures')
 
-    parser.add_argument('-a', '--algo', dest='algo', choices=[A_DDMIN, A_DD],
+    parser.add_argument('-a', '--algo', dest='algo', choices=[A_DDMIN, A_DD, A_PRODD, A_RELDD],
                         help='specify DD algorithm', default=A_DDMIN)
 
     parser.add_argument('--noresolve', dest='noresolve', action='store_true',

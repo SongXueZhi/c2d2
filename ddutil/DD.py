@@ -50,6 +50,7 @@ import math
 from numpy import ndarray
 from networkx import DiGraph
 from tabulate import tabulate
+from conf import DATA_FILE
 
 from collections import deque
 from typing import List
@@ -59,6 +60,12 @@ import copy
 
 logger = logging.getLogger()
 
+def write_data(mes):
+    try:
+        with open(DATA_FILE, 'a') as f:
+            f.write(mes)
+    except Exception as e:
+        logger.warning(str(e))
 
 # Start with some helpers.
 class OutcomeCache:
@@ -366,6 +373,7 @@ class DD:
         if self.cache_outcomes:
             cached_result = self.outcome_cache.lookup(c)
             if cached_result != None:
+                write_data("test({}) = {} (from test set)\n".format(self.coerce(c), repr(cached_result)))
                 return cached_result
 
 
@@ -389,6 +397,7 @@ class DD:
         if self.debug_test:
             logger.debug("test({}) = {}".format(self.coerce(c), repr(outcome)))
 
+        write_data("test({}) = {}\n".format(self.coerce(c), repr(outcome)))
 
         if self.cache_outcomes:
             self.outcome_cache.add(c, outcome)
@@ -533,9 +542,19 @@ class DD:
 
 
     def test_mix(self, csub, c, direction):
-        csubr = self.resolve(csubr, c, direction)
+        t = self.test(csub)
+        if t != self.UNRESOLVED:
+            return (t, csub)
+
+        csubr = self.resolve(csub, c, direction)
+        if csubr == None or len(csubr) == 0:
+            return (t, csub)
         t = self.test(csubr)
-        return (t, csub)
+        if t != self.UNRESOLVED:
+            return (t, csubr)
+        else:
+            return (t, csub)
+
 
 
 
@@ -550,13 +569,13 @@ class DD:
 
         if self.debug_dd:
             logger.debug("dd({}, {})...".format(self.pretty(c), repr(n)))
-        matrix = self._get_dep_matrix()
-        
-        self.set_tokens2hunks(cids=c)
-        
-        print(tabulate(matrix, tablefmt="fancy_grid", showindex=True, headers=list(range(len(c)))))    
-        outcome = self.reldd(c,matrix)
-        # outcome = self._prodd(c)
+       #  matrix = self._get_dep_matrix()
+       #
+       #  self.set_tokens2hunks(cids=c)
+       #
+       #  print(tabulate(matrix, tablefmt="fancy_grid", showindex=True, headers=list(range(len(c)))))
+       #  outcome = self.reldd(c,matrix)Ï
+        outcome = self._dd(c, n)
         print(f"cc{len(outcome)}")
 
         if self.debug_dd:
@@ -673,13 +692,13 @@ class DD:
                         delta = (self.computRatio(delIdx, p_cp) - 1) * p_cp[setd]
                         p[setd] = p_cp[setd] + delta
             run = run + 1
-        #     write_data("p: " + repr(p) + "\n")
+            write_data("p: " + repr(p) + "\n")
             print(f"{idx2test}:{res}")
             print("p: " + repr(p))
-        # write_data('loop time: {}\n'.format(run))
+        write_data('loop time: {}\n'.format(run))
         return c
 
-    def reldd(self, c, matrix: ndarray):
+    def _reldd(self, c, matrix: ndarray):
         print("Use RelDD")
         # assert self.test([]) == self.PASS #check wether F meet T
         retIdx = c[:]
@@ -768,6 +787,7 @@ class DD:
             #     self.REL_UPD.clear()
             #     sm =True
         print("{}->{}->{}".format(len(his), len(self.CE_DICT), retIdx))
+        write_data("{}->{}->{}".format(len(his), len(self.CE_DICT), retIdx))
         return retIdx
     
     def updateMatrix(self, testIdx: list, delIdx: list, matrix: ndarray):
@@ -1256,6 +1276,7 @@ class DD:
             c = next_c
             n = next_n
             run = run + 1
+        write_data('loop time: {}\n'.format(run))
 
 
     def ddmin(self, c):
@@ -1269,7 +1290,39 @@ class DD:
     def ddmix(self, c):
         return self.ddgen(c, 1, 1)
 
+    def prodd(self, c):
 
+        n = 2
+        self.CC = c
+
+        if self.debug_dd:
+            logger.debug("dd({}, {})...".format(self.pretty(c), repr(n)))
+
+        outcome = self._prodd(c)
+
+        if self.debug_dd:
+            logger.debug("dd({}, {}) = {}".format(self.pretty(c), repr(n), repr(outcome)))
+
+        return outcome
+
+    def reldd(self, c):
+        n = 2
+        self.CC = c
+
+        if self.debug_dd:
+            logger.debug("dd({}, {})...".format(self.pretty(c), repr(n)))
+        matrix = self._get_dep_matrix()
+
+        self.set_tokens2hunks(cids=c)
+
+        print(tabulate(matrix, tablefmt="fancy_grid", showindex=True, headers=list(range(len(c)))))
+        outcome = self._reldd(c,matrix)
+        print(f"cc{len(outcome)}")
+
+        if self.debug_dd:
+            logger.debug("dd({}, {}) = {}".format(self.pretty(c), repr(n), repr(outcome)))
+
+        return outcome
 
     # General delta debugging (new TSE version)
     def dddiff(self, c):

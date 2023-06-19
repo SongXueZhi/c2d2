@@ -29,8 +29,9 @@ from conf import CCA_SCRIPTS_DIR, VAR_DIR, FACT_DIR, DD_DIR, LOG_DIR, FB_DIR
 from conf import VIRTUOSO_PW, VIRTUOSO_PORT, DEPENDENCIES_INSTALLER
 from misc import ensure_dir
 from setup_factbase import FB
-from ddjava import A_DD, A_DDMIN
+from ddjava import A_DD, A_DDMIN, A_PRODD, A_RELDD
 from decompose_delta import MAX_STMT_LEVEL, MODIFIED_STMT_RATE_THRESH
+from DD import write_data
 
 import misc
 import setup_factbase
@@ -79,6 +80,8 @@ def shutdown_virtuoso(proj_id, port):
 
 
 def main():
+    begin = time.perf_counter()
+    write_data(f'begin time: {int(begin)}\n')
     from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
 
     parser = ArgumentParser(description='DD for Java programs',
@@ -106,7 +109,7 @@ def main():
     parser.add_argument('-v', '--verbose', dest='verbose', action='store_true',
                         help='enable verbose printing')
 
-    parser.add_argument('-a', '--algo', dest='algo', choices=[A_DDMIN, A_DD],
+    parser.add_argument('-a', '--algo', dest='algo', choices=[A_DDMIN, A_DD, A_PRODD, A_RELDD],
                         help='specify DD algorithm', default=A_DDMIN)
 
     parser.add_argument('--staged', dest='staged', action='store_true',
@@ -207,6 +210,10 @@ def main():
     # diff dirs
     ensure_dir(DIFF_CACHE_DIR)
     set_status('comparing "{}" with "{}"...'.format(v_good, v_bad))
+    write_data('project: {}\n'.format(proj_id))
+    write_data('v_good: {}\n'.format(v_good))
+    write_data('v_bad: {}\n'.format(v_bad))
+
     dir_good = os.path.join(args.proj_dir, v_good)
     dir_bad = os.path.join(args.proj_dir, v_bad)
     r = diff_dirs(diffast, dir_good, dir_bad,
@@ -262,6 +269,8 @@ def main():
 
     # DD
     set_status('starting {}...'.format(args.algo))
+    dd_begin = time.perf_counter()
+    write_data(f'dd begin time: {int(dd_begin)}\n')
     ok = ddjava.run(args.algo, proj_id, DD_DIR, src_dir=args.proj_dir, conf=conf,
                     build_script=args.build_script, test_script=args.test_script, staged=args.staged,
                     keep_going=keep_going, shuffle=args.shuffle, custom_split=args.custom_split,
@@ -269,7 +278,8 @@ def main():
                     max_stmt_level=args.max_stmt_level,
                     modified_stmt_rate_thresh=args.modified_stmt_rate_thresh,
                     greedy=args.greedy, set_status=set_status)
-
+    dd_end = time.perf_counter()
+    write_data(f'dd end time: {int(dd_end)}\n')
     if ok:
         # shutdown virtuoso
         set_status('shutting down virtuoso...')
@@ -283,6 +293,9 @@ def main():
         proc.system(cmd)
 
     set_status('finished.')
+    end = time.perf_counter()
+    write_data(f'end time: {int(end)}\n')
+    write_data(f'run time: {int(end - begin)}s\n')
 
 
 

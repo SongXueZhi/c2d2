@@ -32,7 +32,7 @@ from setup_factbase import FB
 from ddjava import A_DD, A_DDMIN, A_PRODD, A_RELDD
 from decompose_delta import MAX_STMT_LEVEL, MODIFIED_STMT_RATE_THRESH
 from DD import write_data
-
+from model.model import LOG_MODEL,LOG_MATRIX_MODEL,MATRIX_MODEL,NON_MODEL
 import misc
 import setup_factbase
 import ddjava
@@ -111,6 +111,9 @@ def main():
 
     parser.add_argument('-a', '--algo', dest='algo', choices=[A_DDMIN, A_DD, A_PRODD, A_RELDD],
                         help='specify DD algorithm', default=A_DDMIN)
+    
+    parser.add_argument('--model', dest='model', choices=[LOG_MODEL, MATRIX_MODEL, LOG_MATRIX_MODEL, NON_MODEL],
+                        help='specify fix model', default=LOG_MATRIX_MODEL)
 
     parser.add_argument('--staged', dest='staged', action='store_true',
                         help='enable staging')
@@ -277,7 +280,8 @@ def main():
                     noresolve=args.noresolve, noref=args.noref, nochg=args.nochg, port=args.port,
                     max_stmt_level=args.max_stmt_level,
                     modified_stmt_rate_thresh=args.modified_stmt_rate_thresh,
-                    greedy=args.greedy, set_status=set_status)
+                    greedy=args.greedy, set_status=set_status, model=args.model)
+    
     dd_end = time.perf_counter()
     write_data(f'dd end time: {int(dd_end)}\n')
     if ok:

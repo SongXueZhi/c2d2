@@ -35,7 +35,9 @@ from decompose_delta import K_DEL, K_INS, K_REL, Decomposer, Hunk, add_vp_suffix
 from decompose_delta import DependencyCheckFailedException
 from decompose_delta import MAX_STMT_LEVEL, MODIFIED_STMT_RATE_THRESH
 from DD import DD, write_data
+from model.model import LOG_MATRIX_MODEL
 import javalang
+from model.build_result import BuildResult
 
 sys.path.append(CCA_SCRIPTS_DIR)
 
@@ -65,17 +67,12 @@ A_DDMIN = 'ddmin'
 A_PRODD = "prodd"
 A_RELDD = "reldd"
 
+
 class HunkCode(object):
     def __init__(self,hunk,code_0,code_1) -> None:
         self.hunk = hunk
         self.code_0 = code_0
         self.code_1 = code_1
-
-class BuildResult(object):
-    def __init__(self,err_set,rcids) -> None:
-        self.err_set = err_set
-        self.rcids = rcids
-
 
 class DDResult(object):
     def __init__(self, *args, **kwargs):
@@ -110,7 +107,6 @@ class JavaDD(DD, object):
                  custom_split=False, set_status=None,
                  method='odbc', pw=VIRTUOSO_PW, port=VIRTUOSO_PORT):
         DD.__init__(self)
-
         if set_status == None:
             self.set_status = lambda mes: logger.log(DEFAULT_LOGGING_LEVEL, mes)
         else:
@@ -280,6 +276,20 @@ class JavaDD(DD, object):
             for hunk in hunks:
                 self.hunks_token_tbl[idx].update(self.parse_hunk_to_tokens(hunk))
         print(self.hunks_token_tbl)
+
+    def select_start_loc(self,cids)->set:
+        result = set()
+        for idx in cids:
+            hunks = self._decomp.get_compo_hunks(self._vp, idx)
+            flag = False
+            for hunk in hunks:
+                kd = hunk.get_kind() 
+                if kd == K_DEL and "Declaration" in hunk.root.cat:
+                    flag = True
+            if not flag:
+                result.add(idx)
+        return list(result)                    
+
 
     def parse_hunk_to_tokens(self,hunk:Hunk):
         result=set()
@@ -579,7 +589,7 @@ class JavaDD(DD, object):
                 except Exception as e:
                     logger.warning('%s' % e)
 
-            return False,None,None, BuildResult(set(),set())
+            return False,None,None, BuildResult(set(),list())
 
         # build patched application
 
@@ -620,14 +630,14 @@ class JavaDD(DD, object):
                     content_lines = file1.readlines()
                 for item in value:
                     content =None
-                    if item[0] is not None and isinstance(item[0]  , int) and item[1]  is not None and isinstance(item[1] , int):
-                        content_line = content_lines[item[0]-1]
+                    if item[0] is not None and item[0].isdigit() and item[1] is not None and item[1].isdigit():
+                        content_line = content_lines[int(item[0])-1]
                         tokens = javalang.tokenizer.tokenize(content_line)
-                        content = next((t for t in tokens if t.position.column == item[1]), None)
+                        content = next((t for t in tokens if t.position.column == int(item[1])), None)
                     else:
                         file_name = os.path.basename(key)  # 获取文件名，包括扩展名
                         content = os.path.splitext(file_name)[0]  # 去除扩展名，提取类名
-                    contents.add(content)
+                    contents.add(content.value)
         for (v,o) in err_list:
             if o['name'] is not None:
                 contents.add(o['name'].split('(')[0].strip())
@@ -1212,8 +1222,8 @@ def run(algo, proj_id, working_dir, conf=None, src_dir=None, vers=None,
         max_stmt_level=MAX_STMT_LEVEL,
         modified_stmt_rate_thresh=MODIFIED_STMT_RATE_THRESH,
         custom_split=False,
-        greedy=False, set_status=None):
-
+        greedy=False, set_status=None,model=LOG_MATRIX_MODEL):
+    DD.MODEL = model
     jdd = JavaDD(working_dir, proj_id, src_dir, vers=vers, conf=conf,
                  script_dir=script_dir, build_script=build_script, test_script=test_script,
                  keep_going=keep_going,

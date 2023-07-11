@@ -13,25 +13,25 @@
 
    <!-- vertices -->
     <node id="n0">
-      <data key="key0">HUNK (0) DEL SingleTypeImportDeclaration [4:0-4:28 src/main/java/net/masterthought/cucumber/Configuration.java]-[3:0-7:45 src/main/java/net/masterthought/cucumber/Configuration.java]</data>
+      <data key="key0">HUNK (0) DEL SingleTypeImportDeclaration [8:0-8:20 src/main/java/net/masterthought/cucumber/Configuration.java]-[3:0-7:45 src/main/java/net/masterthought/cucumber/Configuration.java]</data>
     </node>
     <node id="n1">
       <data key="key0">HUNK (13) DEL FieldDeclaration [27:4-27:79 src/main/java/net/masterthought/cucumber/Configuration.java]-[9:27-115:0 src/main/java/net/masterthought/cucumber/Configuration.java]</data>
     </node>
     <node id="n2">
-      <data key="key0">HUNK (11) DEL MethodDeclaration [136:4-138:4 src/main/java/net/masterthought/cucumber/Configuration.java]-[9:27-115:0 src/main/java/net/masterthought/cucumber/Configuration.java]</data>
+      <data key="key0">HUNK (0) DEL SingleTypeImportDeclaration [4:0-4:28 src/main/java/net/masterthought/cucumber/Configuration.java]-[3:0-7:45 src/main/java/net/masterthought/cucumber/Configuration.java]</data>
     </node>
     <node id="n3">
-      <data key="key0">HUNK (6) DEL PrimaryMethodInvocationStatement [25:8-25:74 src/main/java/net/masterthought/cucumber/generators/FeaturesOverviewPage.java]-[21:32-26:4 src/main/java/net/masterthought/cucumber/generators/FeaturesOverviewPage.java]</data>
-    </node>
-    <node id="n4">
       <data key="key0">HUNK (0) DEL SingleTypeImportDeclaration [7:0-7:21 src/main/java/net/masterthought/cucumber/Configuration.java]-[3:0-7:45 src/main/java/net/masterthought/cucumber/Configuration.java]</data>
     </node>
-    <node id="n5">
+    <node id="n4">
       <data key="key0">HUNK (18) DEL MethodDeclaration [129:4-131:4 src/main/java/net/masterthought/cucumber/Configuration.java]-[9:27-115:0 src/main/java/net/masterthought/cucumber/Configuration.java]</data>
     </node>
+    <node id="n5">
+      <data key="key0">HUNK (11) DEL MethodDeclaration [136:4-138:4 src/main/java/net/masterthought/cucumber/Configuration.java]-[9:27-115:0 src/main/java/net/masterthought/cucumber/Configuration.java]</data>
+    </node>
     <node id="n6">
-      <data key="key0">HUNK (0) DEL SingleTypeImportDeclaration [8:0-8:20 src/main/java/net/masterthought/cucumber/Configuration.java]-[3:0-7:45 src/main/java/net/masterthought/cucumber/Configuration.java]</data>
+      <data key="key0">HUNK (6) DEL PrimaryMethodInvocationStatement [25:8-25:74 src/main/java/net/masterthought/cucumber/generators/FeaturesOverviewPage.java]-[21:32-26:4 src/main/java/net/masterthought/cucumber/generators/FeaturesOverviewPage.java]</data>
     </node>
 
    <!-- edges -->

@@ -640,6 +640,7 @@ class DD:
 
     def sample_x(self,p:list,retIdx:list, test_count_map:dict,use_cc:bool):
         delIdx = self.sample(p)
+        
         idx2test = self.getIdx2test(retIdx, delIdx)
         if len(idx2test) == 0 or use_cc:
             sliced_map = {key: test_count_map[key] for key in retIdx}
@@ -649,7 +650,13 @@ class DD:
                 idx =1  
             # 获取前25%的索引位置
             idx2test = sorted_keys[:idx]
-            delIdx = self.getIdx2test(retIdx, idx2test)
+        
+        
+        if self.outcome_cache.lookup(idx2test) !=None:
+            p_s = [p[i] for i in retIdx]
+            idx2test = self.random_selection(retIdx,p_s)  
+
+        delIdx = self.getIdx2test(retIdx, idx2test)  
         return idx2test,delIdx
 
     
@@ -766,6 +773,8 @@ class DD:
                             idx2test = delIdx
                             delIdx = temp
                             res = res_b
+            else:
+                self.outcome_cache.add(idx2test,self.PASS)                
 
             self.put_test_count(idx2test=idx2test,test_count_map=test_count_map)
             print('{}:{}'.format(idx2test, res))
@@ -783,12 +792,13 @@ class DD:
                 if is_fix and set(idx2test_back).issubset(set(idx2test)):
                     idx2test = idx2test_back
                     delIdx =self.getIdx2test(retIdx,idx2test)
-                p_cp = p[:]
+                last_p = p[:]
                 for setd in range(0, len(p)):
                     if setd in delIdx and 0 < p[setd] < 1:
-                        delta = (self.computRatio(delIdx, p_cp) - 1) * p_cp[setd]
-                        p[setd] = p_cp[setd] + delta  
+                        delta = (self.computRatio(delIdx, last_p) - 1) * last_p[setd]
+                        p[setd] = last_p[setd] + delta  
                 falure_step+=1
+            
             if set(last_p) == set(p):
                 cc += 1
             if cc > 100:
@@ -859,6 +869,7 @@ class DD:
         return idx2test,False,None,None  
 
     def select_consider_point(self,idx2test:list, retIdx:list,matrix: ndarray,test_count_map:dict):
+        retIdx = sorted(retIdx)
         max_values = np.max(matrix, axis=0)
         groups = [[] for _ in range(len(self.GROUP_SEED))]
 
@@ -872,6 +883,7 @@ class DD:
         groups = [item for item in groups if len(item) > 0]
 
         subsets = self.generate_subsets_group(groups)
+        subsets =[subset for subset in subsets if sorted(subset) != retIdx and len(subset)!=0 ]
         subsets.append(self.getIdx2test(retIdx,idx2test))
 
         min_value = min(test_count_map.values())
@@ -888,16 +900,14 @@ class DD:
 
             
     def generate_subsets_group(self, lst):
-        subsets = [[]]  # 初始化一个包含空列表的子集
-
-        for item in lst:
-            new_subsets = []
-            for subset in subsets:
-                new_subset = subset + [item]  # 将当前元素添加到已有子集中
-                new_subsets.append(new_subset)
-            subsets.extend(new_subsets)
-
-        subsets = [subset for subset in subsets if subset != lst and subset != []]  # 去除空集和全集
+        n = len(lst)
+        subsets = []
+        for i in range(1, 2**n):  # 从1到2^n-1遍历所有可能的子集表示整数，跳过空集表示的整数0
+            subset = []
+            for j in range(n):
+                if (i >> j) & 1:  # 检查当前位是否为1
+                    subset.extend(lst[j])  # 将对应位置的元素添加到子集中
+            subsets.append(subset)
 
         return subsets
     
@@ -945,6 +955,9 @@ class DD:
         if self.MODEL == LOG_MODEL:
             return result
         delIdx = self.getIdx2test(retIdx,idx2test)
+        slice_matrix = matrtix[idx2test][:, delIdx]
+        pro4del = np.max(slice_matrix, axis=0)
+        pro4Idx = np.max(slice_matrix, axis=1)
         for i in range(0,max):
             gen_set = set()
             sub = idx2test[:]
@@ -957,19 +970,46 @@ class DD:
                 else: 
                     break     
             if len(gen_set)!= len(delIdx) and len(gen_set) > 0: 
-                gen_list= list(set(gen_set)|set(idx2test)).sort() 
-                if not self.is_list_in_nested_list(result,gen_list):                                                             
+                gen_list= sorted(list(set(gen_set)|set(idx2test)))
+                if not self.is_list_in_nested_list(result,gen_list) and self.get_list_str(gen_list) not in self.CE_DICT:                                                             
                     result.append(gen_list) 
-            
+
+            # rand_add_set = self.random_selection(delIdx, pro4del)
+            # if len(rand_add_set)!= len(delIdx):
+            #     gen2_list = list(set(idx2test)|set(rand_add_set))
+            #     if not self.is_list_in_nested_list(result,gen2_list) and self.get_list_str(gen2_list) not in self.CE_DICT:                                                              
+            #             result.append(gen2_list) 
+
             sub = idx2test[:]
             sub_=delIdx[:]
             del_nodes  = self.select_del_nodes(sub,sub_,matrtix)
 
             if 0< len(del_nodes)<len(idx2test):
-                del_list = list(set(idx2test)-del_nodes).sort()
-                if not self.is_list_in_nested_list(result,del_list):    
-                    result.append(del_list)
+                del_list = sorted(list(set(idx2test)-del_nodes))
+                if not self.is_list_in_nested_list(result,del_list) and self.get_list_str(del_list) not in self.CE_DICT:                                                                  
+                    result.append(del_list) 
+
+            # rand_del_set = self.random_selection(idx2test, pro4Idx)
+            # if 0< len(rand_del_set)<len(idx2test):
+            #     gen3_list = sorted(list(set(idx2test)-set(rand_del_set)))
+            #     if not self.is_list_in_nested_list(result,gen3_list) and self.get_list_str(gen3_list) not in self.CE_DICT:                                                            
+            #         result.append(gen3_list) 
+
         return result
+    
+    def random_selection(self, set_data, probabilities):
+        right = len(set_data)-1
+        if right <= 0:
+            return set_data
+        if right ==1:
+            size =1 
+        else:    
+            size = np.random.randint(1, right)  # 随机选择子集的大小
+        total_sum = sum(probabilities)
+        probabilities = [prob / total_sum for prob in probabilities]
+        selected_indices = np.random.choice(len(set_data), size, replace=False, p=probabilities)  # 根据概率随机选择索引
+        selected_data = [set_data[i] for i in selected_indices]  # 根据索引获取选择的数据
+        return selected_data
         
     def is_list_in_nested_list(self,nested_list, target_list):
         for sublist in nested_list:

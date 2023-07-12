@@ -38856,7 +38856,7 @@ class Decomposer(object):
             for (query_name, kind) in REF_QUERY_TBL.get(self._lang, []):
                 _query = eval(self.make_query_id(query_name))
                 qcount += 1
-                sys.stdout.write('[%d] %s' % (qcount, query_name))
+                # sys.stdout.write('[%d] %s' % (qcount, query_name))
                 sys.stdout.flush()
                 query = _query % { 'proj_id' : self._proj_id }
                 hit = 0
@@ -38916,7 +38916,7 @@ class Decomposer(object):
                                                                                        kind,
                                                                                        get_localname(ent),
                                                                                        get_localname(ent_)))
-                sys.stdout.write(': %d\n' % hit)
+                # sys.stdout.write(': %d\n' % hit)
                 sys.stdout.flush()
 
 
@@ -38959,7 +38959,7 @@ class Decomposer(object):
             for (query_name, key_kind, kind) in OTH_QUERY_TBL.get(self._lang, []):
                 _query = eval(self.make_query_id(query_name))
                 qcount += 1
-                sys.stdout.write('[%d] %s' % (qcount, query_name))
+                # sys.stdout.write('[%d] %s' % (qcount, query_name))
                 sys.stdout.flush()
                 query = _query % { 'proj_id' : self._proj_id }
                 hit = 0
@@ -39040,7 +39040,7 @@ class Decomposer(object):
                                                                                          kind,
                                                                                          get_localname(ent),
                                                                                          get_localname(ent_)))
-                sys.stdout.write(': %d\n' % hit)
+                # sys.stdout.write(': %d\n' % hit)
                 sys.stdout.flush()
                 logger.info('[{}] {}: {}'.format(qcount, query_name, hit))
 
@@ -39065,7 +39065,7 @@ class Decomposer(object):
                     continue
 
                 qcount += 1
-                sys.stdout.write('[%d] %s' % (qcount, query_name))
+                # sys.stdout.write('[%d] %s' % (qcount, query_name))
                 sys.stdout.flush()
                 query = _query % { 'proj_id' : self._proj_id }
                 hit = 0
@@ -39143,7 +39143,7 @@ class Decomposer(object):
                             if dv:
                                 set_tbl_add(dtbl, tuple(vs), dv)
 
-                sys.stdout.write(': %d\n' % hit)
+                # sys.stdout.write(': %d\n' % hit)
                 sys.stdout.flush()
                 logger.info('[{}] {}: {}'.format(qcount, query_name, hit))
 

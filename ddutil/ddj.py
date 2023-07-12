@@ -82,6 +82,7 @@ def shutdown_virtuoso(proj_id, port):
 def main():
     begin = time.perf_counter()
     write_data(f'begin time: {int(begin)}\n')
+    print(f'begin time: {int(begin)}')
     from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
 
     parser = ArgumentParser(description='DD for Java programs',
@@ -274,6 +275,7 @@ def main():
     set_status('starting {}...'.format(args.algo))
     dd_begin = time.perf_counter()
     write_data(f'dd begin time: {int(dd_begin)}\n')
+    print(f'dd begin time: {int(dd_begin)}')
     ok = ddjava.run(args.algo, proj_id, DD_DIR, src_dir=args.proj_dir, conf=conf,
                     build_script=args.build_script, test_script=args.test_script, staged=args.staged,
                     keep_going=keep_going, shuffle=args.shuffle, custom_split=args.custom_split,
@@ -284,6 +286,8 @@ def main():
     
     dd_end = time.perf_counter()
     write_data(f'dd end time: {int(dd_end)}\n')
+    print(f'dd end time: {int(dd_end)}')
+    print(f'dd run time: {int(dd_end - dd_begin)}s')
     if ok:
         # shutdown virtuoso
         set_status('shutting down virtuoso...')
@@ -299,7 +303,9 @@ def main():
     set_status('finished.')
     end = time.perf_counter()
     write_data(f'end time: {int(end)}\n')
+    print(f'end time: {int(end)}')
     write_data(f'run time: {int(end - begin)}s\n')
+    print(f'run time: {int(end - begin)}s')
 
 
 

@@ -284,7 +284,7 @@ class JavaDD(DD, object):
             flag = False
             for hunk in hunks:
                 kd = hunk.get_kind() 
-                if kd == K_DEL and "Declaration" in hunk.root.cat:
+                if kd == K_DEL and "Declaration" in hunk.root.cat and "LocalVariable" not in hunk.root.cat:
                     flag = True
             if not flag:
                 result.add(idx)
@@ -320,7 +320,7 @@ class JavaDD(DD, object):
         end_pos1 = javalang.tokenizer.Position(rt.el_, rt.ec_)
         print(f'{rt.sl_}:{rt.sc_}-{rt.el_}:{rt.ec_} {file_name2}')
         hunk_content2 = javalang.tokenizer.tokenize(content2)
-        tokens2_in_range = [t.value for t in hunk_content2 if start_pos1 <= t.position < end_pos1 and type(t) == javalang.tokenizer.Identifier]
+        tokens2_in_range = [t.value for t in hunk_content2 if start_pos1 <= t.position < end_pos1]
         return tokens2_in_range
 
     def parse_hunk_from_new(self,hunk):
@@ -336,7 +336,7 @@ class JavaDD(DD, object):
         print(f'{rt.sl}:{rt.sc}-{rt.el}:{rt.ec} {file_name1}')
 
         hunk_content1 = javalang.tokenizer.tokenize(content1)
-        tokens1_in_range = [t.value for t in hunk_content1 if start_pos <= t.position < end_pos and t.value.isalpha() and type(t) == javalang.tokenizer.Identifier ]
+        tokens1_in_range = [t.value for t in hunk_content1 if start_pos <= t.position < end_pos and t.value.isalpha()]
         return tokens1_in_range
 
     def show_hunks(self, xs):

@@ -95,6 +95,7 @@ class OutcomeCache:
         """Add (C, RESULT) to the cache.  C must be a list of scalars."""
         cs = c[:]
         cs.sort(key=str)
+        sorted(cs)
 
 
         p = self
@@ -370,6 +371,7 @@ class DD:
     def test(self, c,dest_dir = None,uid =None):
         """Test the configuration C.  Return PASS, FAIL, or UNRESOLVED"""
         c.sort(key=str)
+        sorted(c)
 
 
         # If we had this test before, return its result
@@ -652,12 +654,12 @@ class DD:
             idx2test = sorted_keys[:idx]
         
         
-        if self.outcome_cache.lookup(idx2test) !=None:
+        if self.outcome_cache.lookup(sorted(idx2test)) !=None:
             p_s = [p[i] for i in retIdx]
             idx2test = self.random_selection(retIdx,p_s)  
 
         delIdx = self.getIdx2test(retIdx, idx2test)  
-        return idx2test,delIdx
+        return sorted(idx2test),sorted(delIdx)
 
     
     def put_test_count(self, idx2test, test_count_map):      
@@ -750,7 +752,7 @@ class DD:
 
                 iscompile, dest_dir, uid,build_result = self.check_compile(idx2test,None,None,retIdx,matrix)                
                 if not iscompile:
-                    fix_set,iscompile,dest_dir,uid = self.try_fix_with_gen(idx2test=idx2test,retIdx=retIdx,matrix=matrix,last_build_result= build_result)
+                    fix_set,iscompile,dest_dir,uid = self.try_fix_with_gen(idx2test=idx2test,retIdx=retIdx,matrix=matrix,last_build_result= build_result,p=p)
                     if not iscompile:
                         fix_set,iscompile,dest_dir,uid =self.select_consider_point(idx2test,retIdx,matrix,test_count_map)
                         self.TOP_k = self.TOP_k+10
@@ -774,7 +776,7 @@ class DD:
                             delIdx = temp
                             res = res_b
             else:
-                self.outcome_cache.add(idx2test,self.PASS)                
+                self.outcome_cache.add(sorted(idx2test),self.PASS)                
 
             self.put_test_count(idx2test=idx2test,test_count_map=test_count_map)
             print('{}:{}'.format(idx2test, res))
@@ -804,12 +806,12 @@ class DD:
             if cc > 100:
                 break
             print(p)
-            print(tabulate(matrix, tablefmt="fancy_grid", showindex=True, headers=list(range(len(p)))))
+            # print(tabulate(matrix, tablefmt="fancy_grid", showindex=True, headers=list(range(len(p)))))
         print("{}->{}->{}".format(len(his), len(self.CE_DICT), retIdx))
         write_data("{}->{}->{}".format(len(his), len(self.CE_DICT), retIdx))
         return retIdx
     
-    def try_fix_with_gen(self,idx2test:list,retIdx:list,matrix: ndarray,last_build_result):
+    def try_fix_with_gen(self,idx2test:list,retIdx:list,matrix: ndarray,last_build_result,p):
         # 分两种修复方式，log-based和matrix-based
         # 首先计算切片矩阵信息熵
         rate = 1
@@ -829,6 +831,7 @@ class DD:
             entropy_list.append(entropy_list_score)
 
         sorted_index_list = [x for _, x in sorted(zip(entropy_list, gens_by_matrix))][:rate*self.TOP_k]
+        sorted_index_list = [item for item in sorted_index_list if self.outcome_cache.lookup(sorted(item)) == None]
 
         if hx < 1.5:
             print("try fix with matrix")
@@ -843,14 +846,16 @@ class DD:
                         return item,iscompile,dest_dir ,uid
                     
                 print("try fix with log")    
-                gens_by_logs = self.gen_fix_by_log(idx2test,retIdx,last_build_result,rate*self.TOP_k)
+                gens_by_logs = self.gen_fix_by_log(idx2test,retIdx,last_build_result,rate*self.TOP_k,p)
+                gens_by_logs = [item for item in gens_by_logs if self.outcome_cache.lookup(sorted(item)) == None]
                 for item in gens_by_logs:
                     iscompile, dest_dir, uid,build_result = self.check_compile(item,None,None,retIdx,matrix)
                     if iscompile:
                         return item,iscompile,dest_dir ,uid
         else:
             print("try fix with log") 
-            gens_by_logs = self.gen_fix_by_log(idx2test,retIdx,last_build_result,rate*self.TOP_k)
+            gens_by_logs = self.gen_fix_by_log(idx2test,retIdx,last_build_result,rate*self.TOP_k,p)
+            gens_by_logs = [item for item in gens_by_logs if self.outcome_cache.lookup(sorted(item)) == None]
             for item in gens_by_logs:
                 iscompile, dest_dir, uid,build_result = self.check_compile(item,None,None,retIdx,matrix)
                 if iscompile:
@@ -918,7 +923,7 @@ class DD:
         else :
             return self.UNRESOLVED
 
-    def gen_fix_by_log(self,idx2test:list,retIdx:list,last_build_result:BuildResult,max:int)-> List[List]:
+    def gen_fix_by_log(self,idx2test:list,retIdx:list,last_build_result:BuildResult,max:int,p:list)-> List[List]:
         #根据 log中的信息进行上述或者添加
         result=[]
         err_cids = last_build_result.rcids[:]
@@ -926,8 +931,14 @@ class DD:
             return result
         err_cids = list(set(err_cids) & set(retIdx)) 
         if len(err_cids) == 0:
-            err_cids = list(set(retIdx)-set(idx2test))            
-            return self.generate_subsets(err_cids,max)
+            err_cids = list(set(retIdx)-set(idx2test)) 
+            for i in range(0,max):
+                p_s = [p[l] for l in idx2test]
+                res = self.random_selection(idx2test,p_s) 
+                p_d = [p[m] for m in err_cids]
+                res.extend(self.random_selection(err_cids,p_d))    
+            result.append(res)          
+            return result
         
         result.append(list(set(idx2test) | set(err_cids)) )
         result.append(list(set(idx2test) - set(err_cids)))
@@ -945,6 +956,7 @@ class DD:
                 if len(result) >= max:
                     return result 
         result.append(list(set(err_cids))) 
+        
         return result
     
     def gen_fix_by_matrix(self,idx2test:list,retIdx:list,matrtix:ndarray,max) -> List[List]:
@@ -1022,12 +1034,10 @@ class DD:
 
         def generate_helper(subset, index):
             nonlocal subsets
-
-            if len(subset) > 0 and len(subset) < len(my_set):
-                subsets.append(subset)
-
             if len(subsets) >= threshold:
                 return
+            if len(subset) > 0 and len(subset) < len(my_set):
+                subsets.append(subset)
 
             for i in range(index, len(my_set)):
                 generate_helper(subset + [my_set[i]], i + 1)

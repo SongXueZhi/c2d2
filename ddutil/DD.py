@@ -654,10 +654,10 @@ class DD:
         if self.outcome_cache.lookup(sorted(idx2test)) != None:
             p_s = [p[i] for i in retIdx]
             idx2test = self.random_selection(retIdx, p_s)
-            # todo
         if len(idx2test) == 0 or len(idx2test) == len(retIdx):
             p_s = [p[i] for i in retIdx]
             idx2test = self.random_selection(retIdx, p_s)
+        idx2test = list(set(idx2test))
 
         delIdx = self.getIdx2test(retIdx, idx2test)
         return sorted(idx2test), sorted(delIdx)
@@ -757,9 +757,13 @@ class DD:
                     fix_set, iscompile, dest_dir, uid = self.try_fix_with_gen(idx2test=idx2test, retIdx=retIdx,
                                                                               matrix=matrix,
                                                                               last_build_result=build_result, p=p)
+                    if len(fix_set) == len(retIdx):
+                        iscompile = False
                     if not iscompile:
                         fix_set, iscompile, dest_dir, uid = self.select_consider_point(idx2test, retIdx, matrix,
                                                                                        test_count_map)
+                        if len(fix_set) == len(retIdx):
+                            iscompile = False
                         self.TOP_k = self.TOP_k + 10
                         if self.TOP_k > self.TOP_MAX:
                             self.TOP_k = self.TOP_MAX
@@ -841,11 +845,13 @@ class DD:
         if hx < 1.5:
             print("try fix with matrix")
             (t, csub) = self.test_mix_prodd(idx2test, retIdx)
+            csub = list(set(csub))
             if t != self.UNRESOLVED:
                 return csub, True, None, None
             else:
                 # 处理lastbuildinfo
                 for item in sorted_index_list:
+                    item = list(set(item))
                     iscompile, dest_dir, uid, build_result = self.check_compile(item, None, None, retIdx, matrix)
                     if iscompile:
                         return item, iscompile, dest_dir, uid
@@ -854,6 +860,7 @@ class DD:
                 gens_by_logs = self.gen_fix_by_log(idx2test, retIdx, last_build_result, rate * self.TOP_k, p)
                 gens_by_logs = [item for item in gens_by_logs if self.outcome_cache.lookup(sorted(item)) == None]
                 for item in gens_by_logs:
+                    item = list(set(item))
                     iscompile, dest_dir, uid, build_result = self.check_compile(item, None, None, retIdx, matrix)
                     if iscompile:
                         return item, iscompile, dest_dir, uid
@@ -862,6 +869,7 @@ class DD:
             gens_by_logs = self.gen_fix_by_log(idx2test, retIdx, last_build_result, rate * self.TOP_k, p)
             gens_by_logs = [item for item in gens_by_logs if self.outcome_cache.lookup(sorted(item)) == None]
             for item in gens_by_logs:
+                item = list(set(item))
                 iscompile, dest_dir, uid, build_result = self.check_compile(item, None, None, retIdx, matrix)
                 if iscompile:
                     return item, iscompile, dest_dir, uid
@@ -872,6 +880,7 @@ class DD:
                 return csub, True, None, None
             else:
                 for item in sorted_index_list:
+                    item = list(set(item))
                     iscompile, dest_dir, uid, build_result = self.check_compile(item, None, None, retIdx, matrix)
                     if iscompile:
                         return item, iscompile, dest_dir, uid
@@ -921,6 +930,7 @@ class DD:
         return subsets
 
     def predict_result(self, idx2test):
+        sorted(idx2test)
         res = self.outcome_cache.lookup_superset(idx2test)
         if res == self.PASS:
             return self.PASS
@@ -930,31 +940,32 @@ class DD:
     def gen_fix_by_log(self, idx2test: list, retIdx: list, last_build_result: BuildResult, max: int, p: list) -> List[
         List]:
         # 根据 log中的信息进行上述或者添加
+        idx2test_back = idx2test[:]
         result = []
         err_cids = last_build_result.rcids[:]
         if self.MODEL == MATRIX_MODEL:
             return result
         err_cids = list(set(err_cids) & set(retIdx))
         if len(err_cids) == 0:
-            err_cids = list(set(retIdx) - set(idx2test))
+            err_cids = list(set(retIdx) - set(idx2test_back))
             for i in range(0, max):
-                p_s = [p[l] for l in idx2test]
-                res = self.random_selection(idx2test, p_s)
+                p_s = [p[l] for l in idx2test_back]
+                res = self.random_selection(idx2test_back[:], p_s)
                 p_d = [p[m] for m in err_cids]
-                res.extend(self.random_selection(err_cids, p_d))
+                res.extend(self.random_selection(err_cids[:], p_d))
             result.append(res)
             return result
 
-        result.append(list(set(idx2test) | set(err_cids)))
-        result.append(list(set(idx2test) - set(err_cids)))
+        result.append(list(set(idx2test_back) | set(err_cids)))
+        result.append(list(set(idx2test_back) - set(err_cids)))
 
         for item in range(2, len(err_cids) + 1):
             n = len(err_cids) // item
             results = [err_cids[i:i + n] for i in range(0, len(err_cids), n)]
             for list_item in results:
-                add_fix_list = list(set(idx2test) | set(list_item))
+                add_fix_list = list(set(idx2test_back) | set(list_item))
                 add_fix_list.sort()
-                del_fix_list = list(set(idx2test) - set(list_item))
+                del_fix_list = list(set(idx2test_back) - set(list_item))
                 del_fix_list.sort()
                 result.append(add_fix_list)
                 result.append(del_fix_list)

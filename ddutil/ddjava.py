@@ -318,7 +318,7 @@ class JavaDD(DD, object):
         # Get the tokens in the specified range
         start_pos1 = javalang.tokenizer.Position(rt.sl_, rt.sc_)
         end_pos1 = javalang.tokenizer.Position(rt.el_, rt.ec_)
-        print(f'{rt.sl_}:{rt.sc_}-{rt.el_}:{rt.ec_} {file_name2}')
+        # print(f'{rt.sl_}:{rt.sc_}-{rt.el_}:{rt.ec_} {file_name2}')
         hunk_content2 = javalang.tokenizer.tokenize(content2)
         tokens2_in_range = [t.value for t in hunk_content2 if start_pos1 <= t.position < end_pos1]
         return tokens2_in_range
@@ -333,7 +333,7 @@ class JavaDD(DD, object):
         start_pos = javalang.tokenizer.Position(rt.sl, rt.sc)
         end_pos = javalang.tokenizer.Position(rt.el, rt.ec)
 
-        print(f'{rt.sl}:{rt.sc}-{rt.el}:{rt.ec} {file_name1}')
+        # print(f'{rt.sl}:{rt.sc}-{rt.el}:{rt.ec} {file_name1}')
 
         hunk_content1 = javalang.tokenizer.tokenize(content1)
         tokens1_in_range = [t.value for t in hunk_content1 if start_pos <= t.position < end_pos and t.value.isalpha()]
@@ -624,29 +624,33 @@ class JavaDD(DD, object):
         contents = set()
         result=[]
         err_set =set()
-        for key,value in err_file_tbl.items():
-            if key  is not None:
-                with open(key,'r') as file1:
-                    content_lines = file1.readlines()
-                for item in value:
-                    content =None
-                    if item[0] is not None and item[0].isdigit() and item[1] is not None and item[1].isdigit():
-                        content_line = content_lines[int(item[0])-1]
-                        tokens = javalang.tokenizer.tokenize(content_line)
-                        content = next((t for t in tokens if t.position.column == int(item[1])), None)
-                    else:
-                        file_name = os.path.basename(key)  # 获取文件名，包括扩展名
-                        content = os.path.splitext(file_name)[0]  # 去除扩展名，提取类名
-                    contents.add(content.value)
-        for (v,o) in err_list:
-            if o['name'] is not None:
-                contents.add(o['name'].split('(')[0].strip())
-            elif o['loc'] is not None:
-                contents.add(o['loc'].split('.')[-1])
-            err_set.add(f"{v['loc']}_{v['line']}_{v['column']}")
-        for cid, tokens in self.hunks_token_tbl.items():
-            if tokens.intersection(contents):
-                result.append(cid)
+        try:
+            for key,value in err_file_tbl.items():
+                if key  is not None:
+                    with open(key,'r') as file1:
+                        content_lines = file1.readlines()
+                    for item in value:
+                        content =None
+                        if item[0] is not None and item[0].isdigit() and item[1] is not None and item[1].isdigit():
+                            content_line = content_lines[int(item[0])-1]
+                            tokens = javalang.tokenizer.tokenize(content_line)
+                            content = next((t for t in tokens if t.position.column == int(item[1])), None)
+                        else:
+                            file_name = os.path.basename(key)  # 获取文件名，包括扩展名
+                            content = os.path.splitext(file_name)[0]  # 去除扩展名，提取类名
+                        if content is not None :
+                            contents.add(content.value)
+            for (v,o) in err_list:
+                if o['name'] is not None:
+                    contents.add(o['name'].split('(')[0].strip())
+                elif o['loc'] is not None:
+                    contents.add(o['loc'].split('.')[-1])
+                err_set.add(f"{v['loc']}_{v['line']}_{v['column']}")
+            for cid, tokens in self.hunks_token_tbl.items():
+                if tokens.intersection(contents):
+                    result.append(cid)
+        except:
+            print("_parse_err_message")
         return BuildResult(err_set,list(set(result)))
 
     def get_err_file_dict(self, err_list):

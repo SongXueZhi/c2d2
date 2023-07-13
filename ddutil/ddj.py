@@ -32,7 +32,7 @@ from setup_factbase import FB
 from ddjava import A_DD, A_DDMIN, A_PRODD, A_RELDD
 from decompose_delta import MAX_STMT_LEVEL, MODIFIED_STMT_RATE_THRESH
 from DD import write_data
-from model.model import LOG_MODEL,LOG_MATRIX_MODEL,MATRIX_MODEL,NON_MODEL
+from model.model import LOG_MODEL, LOG_MATRIX_MODEL, MATRIX_MODEL, NON_MODEL
 import misc
 import setup_factbase
 import ddjava
@@ -60,6 +60,7 @@ FILE_SIM_THRESH = 0.8
 DIFF_CACHE_DIR = os.path.join(VAR_DIR, 'cache', 'diffast')
 STAT_FILE = os.path.join(VAR_DIR, 'status')
 
+
 #
 
 def set_status(mes):
@@ -69,6 +70,7 @@ def set_status(mes):
             f.write(mes)
     except Exception as e:
         logger.warning(str(e))
+
 
 def shutdown_virtuoso(proj_id, port):
     if misc.is_virtuoso_running():
@@ -112,7 +114,7 @@ def main():
 
     parser.add_argument('-a', '--algo', dest='algo', choices=[A_DDMIN, A_DD, A_PRODD, A_RELDD],
                         help='specify DD algorithm', default=A_DDMIN)
-    
+
     parser.add_argument('--model', dest='model', choices=[LOG_MODEL, MATRIX_MODEL, LOG_MATRIX_MODEL, NON_MODEL],
                         help='specify fix model', default=LOG_MATRIX_MODEL)
 
@@ -163,7 +165,7 @@ def main():
 
     args = parser.parse_args()
 
-    log_level = DEFAULT_LOGGING_LEVEL#logging.WARNING
+    log_level = DEFAULT_LOGGING_LEVEL  # logging.WARNING
     if args.verbose:
         log_level = logging.INFO
     if args.debug:
@@ -200,7 +202,7 @@ def main():
 
     # setup config
     conf = Config()
-    conf.proj_id  = proj_id
+    conf.proj_id = proj_id
     conf.lang = 'java'
     conf.proj_path = args.proj_dir
     conf.vkind = VKIND_VARIANT
@@ -242,25 +244,25 @@ def main():
                   use_sim=True,
                   sim_thresh=FILE_SIM_THRESH,
                   quiet=False
-    )
-    cost      = r['cost']
+                  )
+    cost = r['cost']
     nmappings = r['nmappings']
     nrelabels = r['nrelabels']
     try:
         nnodes1 = r['nnodes1']
         nnodes2 = r['nnodes2']
-        nnodes  = r['nnodes']
+        nnodes = r['nnodes']
     except KeyError:
         logger.warning('failed to get total number of nodes')
         nnodes1 = srcdiff.count_nodes([dir_good])
         nnodes2 = srcdiff.count_nodes([dir_bad])
-        nnodes  = nnodes1 + nnodes2
+        nnodes = nnodes1 + nnodes2
     dist = 0
     sim = 0
     if nmappings > 0:
         dist = float(cost) / float(nmappings)
     if nnodes > 0:
-        sim  = float(2 * (nmappings - nrelabels) + nrelabels) / float(nnodes)
+        sim = float(2 * (nmappings - nrelabels) + nrelabels) / float(nnodes)
     logger.info('nodes: {} -> {}'.format(nnodes1, nnodes2))
     logger.info('edit distance: {}'.format(cost))
     logger.info('similarity: {}'.format(sim))
@@ -283,9 +285,10 @@ def main():
                     max_stmt_level=args.max_stmt_level,
                     modified_stmt_rate_thresh=args.modified_stmt_rate_thresh,
                     greedy=args.greedy, set_status=set_status, model=args.model)
-    
+
     dd_end = time.perf_counter()
     write_data(f'dd end time: {int(dd_end)}\n')
+    write_data(f'dd run time: {int(dd_end - dd_begin)}s\n')
     print(f'dd end time: {int(dd_end)}')
     print(f'dd run time: {int(dd_end - dd_begin)}s')
     if ok:
@@ -306,7 +309,6 @@ def main():
     print(f'end time: {int(end)}')
     write_data(f'run time: {int(end - begin)}s\n')
     print(f'run time: {int(end - begin)}s')
-
 
 
 if __name__ == '__main__':

@@ -433,27 +433,28 @@ class DD:
         # other, can (but needn't) be used in subclasses
         self._resolve_type = 0
 
-        flag = True
-        self.__resolving = 1
-        csubr = self.resolve(csubr, c, direction)
+        if t == self.UNRESOLVED:
+            flag = True
+            self.__resolving = 1
+            csubr = self.resolve(csubr, c, direction)
 
-        if csubr == None:
-            # Nothing left to resolve
-            flag = False
+            if csubr == None:
+                # Nothing left to resolve
+                flag = False
 
-        elif len(csubr) >= len(c2):
-            # Added everything: csub == c2. ("Upper" Baseline)
-            # This has already been tested.
-            csubr = None
-            flag = False
+            elif len(csubr) >= len(c2):
+                # Added everything: csub == c2. ("Upper" Baseline)
+                # This has already been tested.
+                csubr = None
+                flag = False
 
-        elif len(csubr) <= len(r):
-            # Removed everything: csub == r. (Baseline)
-            # This has already been tested.
-            csubr = None
-            flag = False
-        if flag:
-            t = self.test(csubr)
+            elif len(csubr) <= len(r):
+                # Removed everything: csub == r. (Baseline)
+                # This has already been tested.
+                csubr = None
+                flag = False
+            if flag:
+                t = self.test(csubr)
 
         self.__resolving = 0
         if csubr == None:

@@ -911,12 +911,12 @@ class DD:
         if len(min_elements) != len(retIdx):
             subsets.append(min_elements)
         for sub in subsets:
-            if len(sub) == 0:
+            if len(sub) == 0 or len(sub) == len(retIdx) or self.get_list_str(sub) not in self.CE_DICT:
                 continue
             iscompile, dest_dir, uid, build_result = self.check_compile(sub, None, None, retIdx, matrix)
             if iscompile:
                 return sub, iscompile, dest_dir, uid
-        return None, False, None, None
+        return idx2test, False, None, None
 
     def generate_subsets_group(self, lst):
         n = len(lst)

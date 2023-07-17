@@ -810,8 +810,11 @@ class DD:
                     if setd in delIdx and 0 < p[setd] < 1:
                         delta = (self.computRatio(delIdx, last_p) - 1) * last_p[setd]
                         p[setd] = last_p[setd] + delta 
-                        if p[setd] >= 0.9 and not gtflag:
-                           p[setd] = random.uniform(last_p[setd]-0.25, last_p[setd])
+                        if p[setd] > 0.95 and not gtflag:
+                           left = last_p[setd]
+                           if left >= 0.95:
+                               left =0.9
+                           p[setd] = random.uniform(left, 0.95)
                 falure_step += 1
 
             if set(last_p) == set(p):

@@ -94,8 +94,7 @@ class OutcomeCache:
     def add(self, c, result):
         """Add (C, RESULT) to the cache.  C must be a list of scalars."""
         cs = c[:]
-        cs.sort(key=str)
-        sorted(cs)
+        cs.sort()
 
         p = self
         for start in range(len(c)):
@@ -333,8 +332,7 @@ class DD:
     # Testing
     def test(self, c, dest_dir=None, uid=None):
         """Test the configuration C.  Return PASS, FAIL, or UNRESOLVED"""
-        c.sort(key=str)
-        sorted(c)
+        c.sort()
 
         # If we had this test before, return its result
         if self.cache_outcomes:
@@ -755,6 +753,7 @@ class DD:
 
                 iscompile, dest_dir, uid, build_result = self.check_compile(idx2test, None, None, retIdx, matrix)
                 if not iscompile:
+                    fix_set = idx2test[:]
                     fix_set, iscompile, dest_dir, uid = self.try_fix_with_gen(idx2test=idx2test, retIdx=retIdx,
                                                                               matrix=matrix,
                                                                               last_build_result=build_result, p=p)
@@ -770,24 +769,24 @@ class DD:
                             self.TOP_k = self.TOP_MAX
                     if iscompile:
                         is_fix = True
-
+                    fix_set.sort()
+                idx2test.sort()
                 idx2test_back = idx2test[:]
                 if is_fix:
                     idx2test = fix_set
-
                 delIdx = self.getIdx2test(retIdx, idx2test)
                 res = self.test(idx2test, dest_dir, uid)
                 if res != self.FAIL:
-                    if len(delIdx) < 3:
+                    if 0 < len(delIdx) < 3:
                         res_b = self.test(delIdx)
                         temp = idx2test[:]
                         if len(idx2test) != 0 and res_b == self.FAIL:
-                            idx2test = delIdx
+                            idx2test = sorted(delIdx)
                             delIdx = temp
                             res = res_b
             else:
                 self.outcome_cache.add(sorted(idx2test), self.PASS)
-
+            
             self.put_test_count(idx2test=idx2test, test_count_map=test_count_map)
             print('{}:{}'.format(idx2test, res))
             his.add(self.get_list_str(idx2test))
@@ -801,14 +800,18 @@ class DD:
                 retIdx = idx2test
                 falure_step = 0
             else:  # test(seq2test, *test_args) == PASS:
-                if is_fix and set(idx2test_back).issubset(set(idx2test)):
+                is_fix_by_add = set(idx2test_back).issubset(set(idx2test))
+                if is_fix and is_fix_by_add:
                     idx2test = idx2test_back
                     delIdx = self.getIdx2test(retIdx, idx2test)
                 last_p = p[:]
+                gtflag = all(x > 0.5 for x in last_p if x != 0)
                 for setd in range(0, len(p)):
                     if setd in delIdx and 0 < p[setd] < 1:
                         delta = (self.computRatio(delIdx, last_p) - 1) * last_p[setd]
-                        p[setd] = last_p[setd] + delta
+                        p[setd] = last_p[setd] + delta 
+                        if p[setd] >= 0.9 and not gtflag:
+                           p[setd] = random.uniform(last_p[setd]-0.25, last_p[setd])
                 falure_step += 1
 
             if set(last_p) == set(p):
@@ -931,7 +934,7 @@ class DD:
         return subsets
 
     def predict_result(self, idx2test):
-        sorted(idx2test)
+        idx2test.sort()
         res = self.outcome_cache.lookup_superset(idx2test)
         if res == self.PASS:
             return self.PASS
@@ -1030,6 +1033,9 @@ class DD:
 
     def random_selection(self, set_data, probabilities):
         right = len(set_data) - 1
+        count_nonzero = sum(1 for x in probabilities if x != 0)-1
+        if right > count_nonzero:
+            right = count_nonzero
         if right <= 0:
             return set_data
         if right == 1:

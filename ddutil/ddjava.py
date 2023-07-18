@@ -1220,6 +1220,9 @@ def run(algo, proj_id, working_dir, conf=None, src_dir=None, vers=None,
         noresolve=False,
         noref=False,
         nochg=False,
+        noconsider=False,
+        nostart=False,
+        nosamplex=False,
         port=None,
         shuffle=False,
         optout=True,
@@ -1228,6 +1231,10 @@ def run(algo, proj_id, working_dir, conf=None, src_dir=None, vers=None,
         custom_split=False,
         greedy=False, set_status=None,model=LOG_MATRIX_MODEL):
     DD.MODEL = model
+    DD.noconsider = noconsider
+    DD.nostart = nostart
+    DD.nosamplex = nosamplex
+
     jdd = JavaDD(working_dir, proj_id, src_dir, vers=vers, conf=conf,
                  script_dir=script_dir, build_script=build_script, test_script=test_script,
                  keep_going=keep_going,
@@ -1407,6 +1414,15 @@ def main():
     parser.add_argument('--nochg', dest='nochg', default=False, action='store_true',
                         help='disable change coupling based on change dependency')
 
+    parser.add_argument('--noconsider', dest='noconsider', default=False, action='store_true',
+                        help='no select consider point')
+
+    parser.add_argument('--nostart', dest='nostart', default=False, action='store_true',
+                        help='no select start point')
+
+    parser.add_argument('--nosamplex', dest='nosamplex', default=False, action='store_true',
+                        help='no sample_x')
+
     parser.add_argument('--port', dest='port', default=VIRTUOSO_PORT,
                         metavar='PORT', type=int, help='set port number')
 
@@ -1430,7 +1446,7 @@ def main():
 
     run(args.algo, args.proj_id, args.working_dir, src_dir=src_dir, vers=args.vers, script_dir=args.script_dir,
         staged=args.staged, keep_going=args.keep_going, noresolve=args.noresolve, noref=args.noref, nochg=args.nochg,
-        port=args.port,
+        port=args.port, noconsider=args.noconsider, nostart=args.nostart, nosamplex=args.nosamplex,
         shuffle=args.shuffle, optout=args.optout, max_stmt_level=args.max_stmt_level,
         modified_stmt_rate_thresh=args.modified_stmt_rate_thresh, custom_split=args.custom_split, greedy=args.greedy)
 

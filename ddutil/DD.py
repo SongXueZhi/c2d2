@@ -246,6 +246,10 @@ class DD:
     REL_UPD = set()
     GROUP_SEED = [(-0.05, 0), (0, 0.25), (0.25, 0.5), (0.5, 0.75), (0.75, 1)]
 
+    noconsider = False
+    nostart = False
+    nosamplex = False
+
     def __init__(self):
         self.__resolving = 0
         self.__last_reported_length = 0
@@ -638,8 +642,10 @@ class DD:
 
     def sample_x(self, p: list, retIdx: list, test_count_map: dict, use_cc: bool):
         delIdx = self.sample(p)
-
         idx2test = self.getIdx2test(retIdx, delIdx)
+        if self.nosamplex:
+            return sorted(idx2test), sorted(delIdx)
+
         if len(idx2test) == 0 or use_cc:
             sliced_map = {key: test_count_map[key] for key in retIdx}
             sorted_keys = [k for k, v in
@@ -727,11 +733,15 @@ class DD:
         step = 0
         iscompile = True
         random.seed(42)
+        np.random.seed(42)
         while (not self.testDone(p)):
             if len(retIdx) == 1:
                 break
             if step == 0:  # 给定一个起始点
-                idx2test = self.select_start_loc(c)
+                if self.nostart:
+                    idx2test = self.sample(c)
+                else:
+                    idx2test = self.select_start_loc(c)
                 if len(idx2test) == len(retIdx):
                     idx2test, delIdx = self.sample_x(p, retIdx, test_count_map, False)
                 delIdx = self.getIdx2test(retIdx, idx2test)
@@ -786,7 +796,7 @@ class DD:
                             res = res_b
             else:
                 self.outcome_cache.add(sorted(idx2test), self.PASS)
-            
+
             self.put_test_count(idx2test=idx2test, test_count_map=test_count_map)
             print('{}:{}'.format(idx2test, res))
             his.add(self.get_list_str(idx2test))
@@ -809,12 +819,12 @@ class DD:
                 for setd in range(0, len(p)):
                     if setd in delIdx and 0 < p[setd] < 1:
                         delta = (self.computRatio(delIdx, last_p) - 1) * last_p[setd]
-                        p[setd] = last_p[setd] + delta 
+                        p[setd] = last_p[setd] + delta
                         if p[setd] > 0.95 and not gtflag:
-                           left = last_p[setd]
-                           if left >= 0.95:
-                               left =0.9
-                           p[setd] = random.uniform(left, 0.95)
+                            left = last_p[setd]
+                            if left >= 0.95:
+                                left = 0.9
+                            p[setd] = random.uniform(left, 0.95)
                 falure_step += 1
 
             if set(last_p) == set(p):
@@ -895,6 +905,8 @@ class DD:
         return idx2test, False, None, None
 
     def select_consider_point(self, idx2test: list, retIdx: list, matrix: ndarray, test_count_map: dict):
+        if self.noconsider:
+            return idx2test, False, None, None
         retIdx = sorted(retIdx)
         max_values = np.max(matrix, axis=0)
         groups = [[] for _ in range(len(self.GROUP_SEED))]
@@ -917,7 +929,7 @@ class DD:
         if len(min_elements) != len(retIdx):
             subsets.append(min_elements)
         for sub in subsets:
-            if len(sub) == 0 or len(sub) == len(retIdx) or self.get_list_str(sub) not in self.CE_DICT:
+            if len(sub) == 0 or len(sub) == len(retIdx) or self.outcome_cache.lookup(sorted(sub)) is not None:
                 continue
             iscompile, dest_dir, uid, build_result = self.check_compile(sub, None, None, retIdx, matrix)
             if iscompile:
@@ -1036,7 +1048,7 @@ class DD:
 
     def random_selection(self, set_data, probabilities):
         right = len(set_data) - 1
-        count_nonzero = sum(1 for x in probabilities if x != 0)-1
+        count_nonzero = sum(1 for x in probabilities if x != 0) - 1
         if right > count_nonzero:
             right = count_nonzero
         if right <= 0:

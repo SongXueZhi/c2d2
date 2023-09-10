@@ -29,7 +29,6 @@ import json
 from numpy import ndarray
 from ortools.algorithms import pywrapknapsack_solver as knap
 import logging
-from error_parser import Error_Parser
 from conf import CCA_SCRIPTS_DIR, VIRTUOSO_PW, VIRTUOSO_PORT
 from decompose_delta import K_DEL, K_INS, K_REL, Decomposer, Hunk, add_vp_suffix, vp_to_str, set_tbl_add, getnum, isgid
 from decompose_delta import DependencyCheckFailedException
@@ -170,7 +169,6 @@ class JavaDD(DD, object):
         self._prev_progress = {DD.FAIL:(0, 0, 0),DD.PASS:(0, 0, 0)}
 
         self._custom_split = custom_split
-        self.err_parser = Error_Parser()
         self.hunks_token_tbl ={}
 
     def show_status(self, run, cs, n):
@@ -269,14 +267,6 @@ class JavaDD(DD, object):
     def has_grp(self, xs):
         return len(list(filter(isgid, xs))) > 0
 
-    def set_tokens2hunks(self,cids):
-        for idx in cids:
-            self.hunks_token_tbl[idx] =set()
-            hunks = self._decomp.get_compo_hunks(self._vp, idx)
-            for hunk in hunks:
-                self.hunks_token_tbl[idx].update(self.parse_hunk_to_tokens(hunk))
-        print(self.hunks_token_tbl)
-
     def select_start_loc(self,cids)->set:
         result = set()
         for idx in cids:
@@ -290,23 +280,6 @@ class JavaDD(DD, object):
                 result.add(idx)
         return list(result)                    
 
-
-    def parse_hunk_to_tokens(self,hunk:Hunk):
-        result=set()
-        rt = hunk.root
-        kd = hunk.get_kind()
-        lines_old_num = rt.el-rt.sl
-        lines_new_num = rt.el_-rt.sl_
-        if(kd == K_INS):
-            result.update(self.parse_hunk_from_old(hunk))
-        elif(kd == K_DEL):
-            result.update(self.parse_hunk_from_new(hunk))
-        elif(kd == K_REL):
-            result.update(self.parse_hunk_from_old(hunk))
-            result.update(self.parse_hunk_from_new(hunk))
-        else:
-            result.update(self.parse_hunk_from_new(hunk))
-        return result
 
     def parse_hunk_from_old(self,hunk):
         rt = hunk.root
@@ -392,17 +365,14 @@ class JavaDD(DD, object):
 
 
     def do_build(self, path):
-        try:
-            if self._build_script == None:
-                if os.path.exists(os.path.join(path, self._build_script_name)):
-                    result = subprocess.run(['./'+self._build_script_name],cwd=path,capture_output=True, text=True, check=True)
+        if self._build_script == None:
+            if os.path.exists(os.path.join(path, self._build_script_name)):
+                return proc.system('./'+self._build_script_name, cwd=path)
             else:
-                result = subprocess.run([self._build_script],cwd=path, capture_output=True, text=True, check=True)
-            return 0,None
-        except subprocess.CalledProcessError as e:
-            output = e.output
-            print("Compilation failed.")
-            return 1,output
+                return 0
+        else:
+            cmd = '%s %s' % (self._build_script, path)
+            return proc.system(cmd)
 
     def error_to_hunk(self,VO_list):
         for item in VO_list:
@@ -597,7 +567,7 @@ class JavaDD(DD, object):
 
         self._build_count += 1
         self._global_build_count += 1
-        build_result,err_message  = self.do_build(dest_dir)
+        build_result  = self.do_build(dest_dir)
         if build_result != 0:
             if not self._keep_going:
                 exit(1)
@@ -606,7 +576,6 @@ class JavaDD(DD, object):
             self._global_build_failure_count += 1
 
             logger.warning('BUILD FAILURE: %s' % uid)
-            build_info = self._parse_err_message(err_message=err_message)
             if not keep_variant:
                 try:
                     logger.info('removing %s...' % dest_dir)
@@ -614,45 +583,10 @@ class JavaDD(DD, object):
                 except Exception as e:
                     logger.warning('%s' % e)
 
-            return False,None,None,build_info
+            return False,None,None,BuildResult(set(),list())
 
         return True, dest_dir,uid,None
-
-    def _parse_err_message(self,err_message:str):
-        err_list=self.err_parser.parse_errors(output=err_message)
-        err_file_tbl = self.get_err_file_dict(err_list)
-        contents = set()
-        result=[]
-        err_set =set()
-        try:
-            for key,value in err_file_tbl.items():
-                if key  is not None:
-                    with open(key,'r') as file1:
-                        content_lines = file1.readlines()
-                    for item in value:
-                        content =None
-                        if item[0] is not None and item[0].isdigit() and item[1] is not None and item[1].isdigit():
-                            content_line = content_lines[int(item[0])-1]
-                            tokens = javalang.tokenizer.tokenize(content_line)
-                            content = next((t for t in tokens if t.position.column == int(item[1])), None)
-                        else:
-                            file_name = os.path.basename(key)  # 获取文件名，包括扩展名
-                            content = os.path.splitext(file_name)[0]  # 去除扩展名，提取类名
-                        if content is not None :
-                            contents.add(content.value)
-            for (v,o) in err_list:
-                if o['name'] is not None:
-                    contents.add(o['name'].split('(')[0].strip())
-                elif o['loc'] is not None:
-                    contents.add(o['loc'].split('.')[-1])
-                err_set.add(f"{v['loc']}_{v['line']}_{v['column']}")
-            for cid, tokens in self.hunks_token_tbl.items():
-                if tokens.intersection(contents):
-                    result.append(cid)
-        except:
-            print("_parse_err_message")
-        return BuildResult(err_set,list(set(result)))
-
+    
     def get_err_file_dict(self, err_list):
         err_file_tbl={}
         for (v,o) in err_list:
@@ -1220,9 +1154,6 @@ def run(algo, proj_id, working_dir, conf=None, src_dir=None, vers=None,
         noresolve=False,
         noref=False,
         nochg=False,
-        noconsider=False,
-        nostart=False,
-        nosamplex=False,
         port=None,
         shuffle=False,
         optout=True,
@@ -1231,10 +1162,6 @@ def run(algo, proj_id, working_dir, conf=None, src_dir=None, vers=None,
         custom_split=False,
         greedy=False, set_status=None,model=LOG_MATRIX_MODEL):
     DD.MODEL = model
-    DD.noconsider = noconsider
-    DD.nostart = nostart
-    DD.nosamplex = nosamplex
-
     jdd = JavaDD(working_dir, proj_id, src_dir, vers=vers, conf=conf,
                  script_dir=script_dir, build_script=build_script, test_script=test_script,
                  keep_going=keep_going,
@@ -1414,15 +1341,6 @@ def main():
     parser.add_argument('--nochg', dest='nochg', default=False, action='store_true',
                         help='disable change coupling based on change dependency')
 
-    parser.add_argument('--noconsider', dest='noconsider', default=False, action='store_true',
-                        help='no select consider point')
-
-    parser.add_argument('--nostart', dest='nostart', default=False, action='store_true',
-                        help='no select start point')
-
-    parser.add_argument('--nosamplex', dest='nosamplex', default=False, action='store_true',
-                        help='no sample_x')
-
     parser.add_argument('--port', dest='port', default=VIRTUOSO_PORT,
                         metavar='PORT', type=int, help='set port number')
 
@@ -1446,7 +1364,7 @@ def main():
 
     run(args.algo, args.proj_id, args.working_dir, src_dir=src_dir, vers=args.vers, script_dir=args.script_dir,
         staged=args.staged, keep_going=args.keep_going, noresolve=args.noresolve, noref=args.noref, nochg=args.nochg,
-        port=args.port, noconsider=args.noconsider, nostart=args.nostart, nosamplex=args.nosamplex,
+        port=args.port,
         shuffle=args.shuffle, optout=args.optout, max_stmt_level=args.max_stmt_level,
         modified_stmt_rate_thresh=args.modified_stmt_rate_thresh, custom_split=args.custom_split, greedy=args.greedy)
 

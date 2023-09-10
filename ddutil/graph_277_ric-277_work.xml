@@ -1,0 +1,213 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<graphml xmlns="http://graphml.graphdrawing.org/xmlns"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://graphml.graphdrawing.org/xmlns http://graphml.graphdrawing.org/xmlns/1.0/graphml.xsd">
+
+  <!-- property keys -->
+  <key id="key0" for="node" attr.name="label" attr.type="string" />
+  <key id="key1" for="edge" attr.name="label" attr.type="string" />
+
+  <graph id="G" edgedefault="directed" parse.nodeids="canonical" parse.edgeids="canonical" parse.order="nodesfirst">
+
+   <!-- graph properties -->
+
+   <!-- vertices -->
+    <node id="n0">
+      <data key="key0">HUNK (0) DEL SingleTypeImportDeclaration [21:0-21:29 src/main/java/org/sqlite/JDBC.java]-[19:0-20:18 src/main/java/org/sqlite/JDBC.java]</data>
+    </node>
+    <node id="n1">
+      <data key="key0">HUNK (16) DEL MethodDeclaration [114:4-117:4 src/main/java/org/sqlite/NestedDB.java]-[28:0-447:0 src/main/java/org/sqlite/NestedDB.java]</data>
+    </node>
+    <node id="n2">
+      <data key="key0">HUNK (0) DEL SingleTypeImportDeclaration [22:0-22:34 src/main/java/org/sqlite/JDBC.java]-[19:0-20:18 src/main/java/org/sqlite/JDBC.java]</data>
+    </node>
+    <node id="n3">
+      <data key="key0">HUNK (0) DEL FunctionDefinition [292:0-296:0 src/main/java/org/sqlite/NativeDB.c]-[17:0-779:0 src/main/java/org/sqlite/NativeDB.c]</data>
+    </node>
+    <node id="n4">
+      <data key="key0">HUNK (0) DEL SingleTypeImportDeclaration [21:0-21:32 src/main/java/org/sqlite/NestedDB.java]-[18:0-22:17 src/main/java/org/sqlite/NestedDB.java]</data>
+    </node>
+    <node id="n5">
+      <data key="key0">HUNK (0) DEL SingleTypeImportDeclaration [23:0-23:28 src/main/java/org/sqlite/JDBC.java]-[19:0-20:18 src/main/java/org/sqlite/JDBC.java]</data>
+    </node>
+    <node id="n6">
+      <data key="key0">HUNK (9) DEL LocalVariableDeclarationStatement [46:8-46:110 src/main/java/org/sqlite/Conn.java]-[41:4-44:4 src/main/java/org/sqlite/Conn.java]</data>
+    </node>
+    <node id="n7">
+      <data key="key0">HUNK (0) DEL SingleTypeImportDeclaration [24:0-24:27 src/main/java/org/sqlite/JDBC.java]-[19:0-20:18 src/main/java/org/sqlite/JDBC.java]</data>
+    </node>
+    <node id="n8">
+      <data key="key0">HUNK (0) DEL SingleTypeImportDeclaration [20:0-20:22 src/main/java/org/sqlite/JDBC.java]-[19:0-20:18 src/main/java/org/sqlite/JDBC.java]</data>
+    </node>
+    <node id="n9">
+      <data key="key0">HUNK (3) DEL PrimaryMethodInvocationStatement [49:8-49:53 src/main/java/org/sqlite/Conn.java]-[41:4-44:4 src/main/java/org/sqlite/Conn.java]</data>
+    </node>
+    <node id="n10">
+      <data key="key0">HUNK (0) DEL SingleTypeImportDeclaration [30:0-30:27 src/main/java/org/sqlite/Conn.java]-[18:0-29:20 src/main/java/org/sqlite/Conn.java]</data>
+    </node>
+    <node id="n11">
+      <data key="key0">HUNK (0) DEL SingleTypeImportDeclaration [19:0-19:28 src/main/java/org/sqlite/NestedDB.java]-[18:0-22:17 src/main/java/org/sqlite/NestedDB.java]</data>
+    </node>
+    <node id="n12">
+      <data key="key0">HUNK (8) DEL MethodDeclaration [63:4-63:74 src/main/java/org/sqlite/DB.java]-[38:0-431:0 src/main/java/org/sqlite/DB.java]</data>
+    </node>
+    <node id="n13">
+      <data key="key0">HUNK (9) DEL LocalVariableDeclarationStatement [45:8-45:99 src/main/java/org/sqlite/Conn.java]-[41:4-44:4 src/main/java/org/sqlite/Conn.java]</data>
+    </node>
+    <node id="n14">
+      <data key="key0">HUNK (7) DEL MethodDeclaration [51:4-51:65 src/main/java/org/sqlite/NativeDB.java]-[23:0-205:0 src/main/java/org/sqlite/NativeDB.java]</data>
+    </node>
+    <node id="n15">
+      <data key="key0">HUNK (0) DEL SingleTypeImportDeclaration [19:0-19:26 src/main/java/org/sqlite/JDBC.java]-[19:0-20:18 src/main/java/org/sqlite/JDBC.java]</data>
+    </node>
+    <node id="n16">
+      <data key="key0">HUNK (0) INS SingleTypeImportDeclaration [18:0-21:32 src/main/java/org/sqlite/NestedDB.java]-[20:0-20:19 src/main/java/org/sqlite/NestedDB.java]</data>
+    </node>
+    <node id="n17">
+      <data key="key0">HUNK (0) INS TypeImportOnDemandDeclaration [19:0-24:27 src/main/java/org/sqlite/JDBC.java]-[20:0-20:18 src/main/java/org/sqlite/JDBC.java]</data>
+    </node>
+    <node id="n18">
+      <data key="key0">HUNK (0) INS TypeImportOnDemandDeclaration [18:0-21:32 src/main/java/org/sqlite/NestedDB.java]-[22:0-22:17 src/main/java/org/sqlite/NestedDB.java]</data>
+    </node>
+    <node id="n19">
+      <data key="key0">HUNK (0) INS SingleTypeImportDeclaration [18:0-21:32 src/main/java/org/sqlite/NestedDB.java]-[18:0-18:32 src/main/java/org/sqlite/NestedDB.java]</data>
+    </node>
+    <node id="n20">
+      <data key="key0">HUNK (0) INS TypeImportOnDemandDeclaration [19:0-24:27 src/main/java/org/sqlite/JDBC.java]-[19:0-19:17 src/main/java/org/sqlite/JDBC.java]</data>
+    </node>
+    <node id="n21">
+      <data key="key0">HUNK (12) INS IfStatement [73:4-82:4 src/main/java/org/sqlite/JDBC.java]-[63:8-67:71 src/main/java/org/sqlite/JDBC.java]</data>
+    </node>
+    <node id="n22">
+      <data key="key0">HUNK (4) INS TypeMethodInvocation [81:23-81:39 src/main/java/org/sqlite/JDBC.java]-[67:16-67:69 src/main/java/org/sqlite/JDBC.java]</data>
+    </node>
+    <node id="n23">
+      <data key="key0">HUNK (0) REL ConstructorDeclaration [41:4-50:4 src/main/java/org/sqlite/Conn.java]-[40:4-44:4 src/main/java/org/sqlite/Conn.java]</data>
+    </node>
+    <node id="n24">
+      <data key="key0">HUNK (0) REL BooleanType [41:45-41:54 src/main/java/org/sqlite/Conn.java]-[40:45-40:51 src/main/java/org/sqlite/Conn.java]</data>
+    </node>
+    <node id="n25">
+      <data key="key0">HUNK (0) REL ConstructorBody [42:4-50:4 src/main/java/org/sqlite/Conn.java]-[41:4-44:4 src/main/java/org/sqlite/Conn.java]</data>
+    </node>
+    <node id="n26">
+      <data key="key0">HUNK (0) REL Modifiers [41:4-41:9 src/main/java/org/sqlite/Conn.java]-[40:4-40:9 src/main/java/org/sqlite/Conn.java]</data>
+    </node>
+    <node id="n27">
+      <data key="key0">HUNK (0) REL Name [48:24-48:40 src/main/java/org/sqlite/Conn.java]-[43:24-43:34 src/main/java/org/sqlite/Conn.java]</data>
+    </node>
+    <node id="n28">
+      <data key="key0">HUNK (0) REL Parameter [41:45-41:59 src/main/java/org/sqlite/Conn.java]-[40:45-40:63 src/main/java/org/sqlite/Conn.java]</data>
+    </node>
+    <node id="n29">
+      <data key="key0">HUNK (0) REL Parameters [41:15-41:60 src/main/java/org/sqlite/Conn.java]-[40:15-40:64 src/main/java/org/sqlite/Conn.java]</data>
+    </node>
+    <node id="n30">
+      <data key="key0">CHG AddStatement:org.sqlite.JDBC</data>
+    </node>
+    <node id="n31">
+      <data key="key0">CHG AddStatement:org.sqlite.JDBC</data>
+    </node>
+    <node id="n32">
+      <data key="key0">CHG AddStatement:org.sqlite.JDBC</data>
+    </node>
+    <node id="n33">
+      <data key="key0">CHG AddReturn:</data>
+    </node>
+    <node id="n34">
+      <data key="key0">CHG ChangeParamArg:org.sqlite.Conn.&lt;init&gt;(Ljava.lang.String;Ljava.lang.String;Z)V:sharedCache</data>
+    </node>
+    <node id="n35">
+      <data key="key0">CHG ChangeParamType:org.sqlite.Conn.&lt;init&gt;(Ljava.lang.String;Ljava.lang.String;Z)V:sharedCache</data>
+    </node>
+    <node id="n36">
+      <data key="key0">CHG RemoveReturnType:org.sqlite.NestedDB.enable_load_extension(Z)I</data>
+    </node>
+    <node id="n37">
+      <data key="key0">CHG RemoveThrows:org.sqlite.DB.enable_load_extension</data>
+    </node>
+    <node id="n38">
+      <data key="key0">CHG RemoveThrows:org.sqlite.NestedDB.enable_load_extension(Z)I</data>
+    </node>
+
+   <!-- edges -->
+    <edge id="e0" source="n4" target="n19">
+      <data key="key1">del-ins</data>
+    </edge>
+    <edge id="e1" source="n21" target="n22">
+    </edge>
+    <edge id="e2" source="n23" target="n26">
+      <data key="key1">rel-rel</data>
+    </edge>
+    <edge id="e3" source="n23" target="n25">
+      <data key="key1">rel-rel</data>
+    </edge>
+    <edge id="e4" source="n23" target="n29">
+      <data key="key1">rel-rel</data>
+    </edge>
+    <edge id="e5" source="n28" target="n24">
+      <data key="key1">rel-rel</data>
+    </edge>
+    <edge id="e6" source="n29" target="n28">
+      <data key="key1">rel-rel</data>
+    </edge>
+    <edge id="e7" source="n30" target="n22">
+      <data key="key1">CHG AddStatement:org.sqlite.JDBC</data>
+    </edge>
+    <edge id="e8" source="n30" target="n22">
+      <data key="key1">CHG AddStatement:org.sqlite.JDBC</data>
+    </edge>
+    <edge id="e9" source="n31" target="n22">
+      <data key="key1">CHG AddStatement:org.sqlite.JDBC</data>
+    </edge>
+    <edge id="e10" source="n31" target="n22">
+      <data key="key1">CHG AddStatement:org.sqlite.JDBC</data>
+    </edge>
+    <edge id="e11" source="n32" target="n22">
+      <data key="key1">CHG AddStatement:org.sqlite.JDBC</data>
+    </edge>
+    <edge id="e12" source="n32" target="n22">
+      <data key="key1">CHG AddStatement:org.sqlite.JDBC</data>
+    </edge>
+    <edge id="e13" source="n33" target="n21">
+      <data key="key1">CHG AddReturn:</data>
+    </edge>
+    <edge id="e14" source="n33" target="n21">
+      <data key="key1">CHG AddReturn:</data>
+    </edge>
+    <edge id="e15" source="n34" target="n28">
+      <data key="key1">CHG ChangeParamArg:org.sqlite.Conn.&lt;init&gt;(Ljava.lang.String;Ljava.lang.String;Z)V:sharedCache</data>
+    </edge>
+    <edge id="e16" source="n34" target="n22">
+      <data key="key1">CHG ChangeParamArg:org.sqlite.Conn.&lt;init&gt;(Ljava.lang.String;Ljava.lang.String;Z)V:sharedCache</data>
+    </edge>
+    <edge id="e17" source="n35" target="n24">
+      <data key="key1">CHG ChangeParamType:org.sqlite.Conn.&lt;init&gt;(Ljava.lang.String;Ljava.lang.String;Z)V:sharedCache</data>
+    </edge>
+    <edge id="e18" source="n35" target="n22">
+      <data key="key1">CHG ChangeParamType:org.sqlite.Conn.&lt;init&gt;(Ljava.lang.String;Ljava.lang.String;Z)V:sharedCache</data>
+    </edge>
+    <edge id="e19" source="n36" target="n1">
+      <data key="key1">CHG RemoveReturnType:org.sqlite.NestedDB.enable_load_extension(Z)I</data>
+    </edge>
+    <edge id="e20" source="n36" target="n1">
+      <data key="key1">CHG RemoveReturnType:org.sqlite.NestedDB.enable_load_extension(Z)I</data>
+    </edge>
+    <edge id="e21" source="n37" target="n12">
+      <data key="key1">CHG RemoveThrows:org.sqlite.DB.enable_load_extension</data>
+    </edge>
+    <edge id="e22" source="n37" target="n1">
+      <data key="key1">CHG RemoveThrows:org.sqlite.DB.enable_load_extension</data>
+    </edge>
+    <edge id="e23" source="n37" target="n12">
+      <data key="key1">CHG RemoveThrows:org.sqlite.DB.enable_load_extension(Z)I</data>
+    </edge>
+    <edge id="e24" source="n38" target="n1">
+      <data key="key1">CHG RemoveThrows:org.sqlite.NestedDB.enable_load_extension(Z)I</data>
+    </edge>
+    <edge id="e25" source="n38" target="n1">
+      <data key="key1">CHG RemoveThrows:org.sqlite.NestedDB.enable_load_extension(Z)I</data>
+    </edge>
+
+  </graph>
+</graphml>

@@ -153,15 +153,6 @@ def main():
     parser.add_argument('--nochg', dest='nochg', default=False, action='store_true',
                         help='disable change coupling based on change dependency')
 
-    parser.add_argument('--noconsider', dest='noconsider', default=False, action='store_true',
-                        help='no select consider point')
-
-    parser.add_argument('--nostart', dest='nostart', default=False, action='store_true',
-                        help='no select start point')
-
-    parser.add_argument('--nosamplex', dest='nosamplex', default=False, action='store_true',
-                        help='no sample_x')
-
     parser.add_argument('--port', dest='port', default=VIRTUOSO_PORT,
                         metavar='PORT', type=int, help='set port number')
 
@@ -291,7 +282,6 @@ def main():
                     build_script=args.build_script, test_script=args.test_script, staged=args.staged,
                     keep_going=keep_going, shuffle=args.shuffle, custom_split=args.custom_split,
                     noresolve=args.noresolve, noref=args.noref, nochg=args.nochg, port=args.port,
-                    noconsider=args.noconsider, nostart=args.nostart, nosamplex=args.nosamplex,
                     max_stmt_level=args.max_stmt_level,
                     modified_stmt_rate_thresh=args.modified_stmt_rate_thresh,
                     greedy=args.greedy, set_status=set_status, model=args.model)

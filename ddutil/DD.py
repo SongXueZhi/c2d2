@@ -244,7 +244,7 @@ class DD:
     debug_resolve = 0
     CE_DICT = {}
     REL_UPD = set()
-    GROUP_SEED = [(-0.05, 0), (0, 0.25), (0.25, 0.5), (0.5, 0.75), (0.75, 1)]
+    GROUP_SEED = [(-0.05, 0), (0, 0.25), (0.25, 0.5), (0.5, 0.75), (0.75, 1)] #TODO 参数实验 start-afresh 中的 k 值，当前 k=4.
 
     def __init__(self):
         self.__resolving = 0

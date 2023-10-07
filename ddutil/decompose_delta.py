@@ -39756,7 +39756,7 @@ class Decomposer(object):
         for _cids,cidts in cid_dep_tbl.items():
           for cid in _cids:
             for cit in cidts:
-              matrix[cid][cit] =1
+              matrix[cid][cit] =1 #TODO 参数实验 2 矩阵初始值
         return matrix  
       
     def reset_dep_matrix(self,vp,matrix):

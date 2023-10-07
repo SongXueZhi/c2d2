@@ -721,6 +721,7 @@ class DD:
         p = []
         his = set()
         test_count_map = {}
+        #TODO 参数实验 1
         for idx in range(0, len(c)):  # initialize the probability for each element in the input sequence
             p.append(0.1)
             test_count_map[idx] = 0
